@@ -18,15 +18,11 @@ It is currently in its early stages of development and aims to explore modern re
 
 More features will come gradually as the engine evolves.
 
----
-
 ## 🚧 Work in Progress
 
 > Graphyne is currently developed and maintained by a single developer ([@Multyp](https://github.com/Multyp)).  
 > The repository is **not open to public contributions** at the moment, as the architecture and direction are still being defined.  
 > However, **feedback, ideas, and technical discussions are very welcome** — feel free to open issues or reach out!
-
----
 
 ## License
 
@@ -36,13 +32,9 @@ This project is licensed under the **BSD 3-Clause License**, with a custom claus
 
 Please see the [LICENSE](./LICENSE) file for full details.
 
----
-
 ## Stay in Touch
 
 Interested in the project? Got thoughts or feedback?  
 Open an issue or reach out on [LinkedIn](https://www.linkedin.com/in/miguel-da-silva-andrade-de-freitas/) — always happy to connect with fellow devs.
-
----
 
 🖤 *Graphyne is a passion project built in the cracks of time. One step at a time.*
