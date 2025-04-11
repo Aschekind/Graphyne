@@ -41,7 +41,7 @@ Please see the [LICENSE](./LICENSE) file for full details.
 ## Stay in Touch
 
 Interested in the project? Got thoughts or feedback?  
-Open an issue or reach out on [LinkedIn](https://www.linkedin.com/in/your-profile) or [Twitter](https://twitter.com/yourhandle) — always happy to connect with fellow devs.
+Open an issue or reach out on [LinkedIn](https://www.linkedin.com/in/miguel-da-silva-andrade-de-freitas/) — always happy to connect with fellow devs.
 
 ---
 
