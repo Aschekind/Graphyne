@@ -52,8 +52,11 @@ bool MemoryManager::initialize(size_t generalPoolSize, size_t tempPoolSize)
     m_impl->initialized = true;
     m_initialized = true;
 
-    GN_INFO("Memory manager initialized with general pool: ", std::to_string(generalPoolSize),
-            " bytes, temp pool: ", std::to_string(tempPoolSize), " bytes");
+    GN_INFO("Memory manager initialized with general pool: ",
+            std::to_string(generalPoolSize),
+            " bytes, temp pool: ",
+            std::to_string(tempPoolSize),
+            " bytes");
     return true;
 }
 

@@ -8,14 +8,17 @@
 #include <string>
 #include <vector>
 
-namespace graphyne {
+namespace graphyne
+{
 
 // Forward declarations
-namespace graphics {
+namespace graphics
+{
 class Renderer;
 }
 
-namespace platform {
+namespace platform
+{
 class Window;
 }
 
@@ -78,12 +81,18 @@ public:
      * @brief Check if the engine is running
      * @return True if the engine is running, false otherwise
      */
-    bool isRunning() const { return m_running; }
+    bool isRunning() const
+    {
+        return m_running;
+    }
 
     /**
      * @brief Stop the engine
      */
-    void stop() { m_running = false; }
+    void stop()
+    {
+        m_running = false;
+    }
 
 private:
     Config m_config;
