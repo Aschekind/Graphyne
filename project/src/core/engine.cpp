@@ -105,6 +105,12 @@ int Engine::run()
 void Engine::processEvents()
 {
     m_window->processEvents();
+
+    if (m_window->shouldClose())
+    {
+        m_running = false;
+        GN_INFO("Window close requested, stopping engine loop");
+    }
 }
 
 void Engine::update(float deltaTime)

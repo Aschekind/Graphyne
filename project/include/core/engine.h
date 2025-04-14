@@ -37,6 +37,7 @@ public:
         uint32_t windowHeight = 720;
         bool enableValidation = true;
         bool enableVSync = true;
+        bool m_shouldClose;
     };
 
     /**
