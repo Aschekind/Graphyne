@@ -1,0 +1,95 @@
+# Build directories
+build/
+bin/
+lib/
+out/
+cmake-build-*/
+
+# IDE specific files
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Visual Studio files
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.suo
+*.user
+*.userosscache
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+*.db
+*.aps
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Assets
+*.ilk
+*.meta
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug files
+*.dSYM/
+*.pdb
+
+# Dependency directories
+external/*
+!external/README.md
+
+# Vulkan validation layers
+vk_layer_settings.txt
+
+# Generated files
+compile_commands.json
+.cache/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+.cmake/
+_deps/
+Testing/
+
+# vcpkg
+vcpkg_installed/
