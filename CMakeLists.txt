@@ -97,9 +97,12 @@ endif()
 # Find dependencies using vcpkg
 find_package(Vulkan REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
+set(SPDLOG_HEADER_ONLY ON CACHE BOOL "" FORCE)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+set(FMT_HEADER_ONLY ON CACHE BOOL "" FORCE)
 find_package(fmt CONFIG REQUIRED)
+
 
 # Define the main library
 add_library(graphyne
@@ -132,9 +135,9 @@ target_link_libraries(graphyne
         Vulkan::Vulkan
         SDL2::SDL2
         SDL2::SDL2main
-        spdlog::spdlog
+        spdlog::spdlog_header_only
         glm::glm
-        fmt::fmt
+        fmt::fmt-header-only
 )
 
 # Add examples if enabled
