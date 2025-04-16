@@ -1,5 +1,5 @@
-#include "graphyne/platform/window.h"
-#include "graphyne/utils/logger.h"
+#include "graphyne/platform/window.hpp"
+#include "graphyne/utils/logger.hpp"
 #include <SDL2/SDL_vulkan.h>
 
 namespace graphyne::platform

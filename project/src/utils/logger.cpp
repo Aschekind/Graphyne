@@ -1,4 +1,4 @@
-#include "graphyne/utils/logger.h"
+#include "graphyne/utils/logger.hpp"
 #include <chrono>
 #include <ctime>
 #include <iomanip>

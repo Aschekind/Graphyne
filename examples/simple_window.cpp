@@ -2,8 +2,8 @@
  * @file simple_window.cpp
  * @brief Simple example showing window creation with Graphyne engine
  */
-#include "graphyne/core/engine.h"
-#include "graphyne/utils/logger.h"
+#include "graphyne/core/engine.hpp"
+#include "graphyne/utils/logger.hpp"
 
 #include <iostream>
 
