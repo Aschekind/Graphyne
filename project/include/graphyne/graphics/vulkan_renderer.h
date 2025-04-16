@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "graphics/renderer.h"
+#include "graphyne/graphics/renderer.h"
 
 #include <vector>
 #include <vulkan/vulkan.h>

@@ -1,6 +1,6 @@
-#include "graphics/renderer.h"
-#include "graphics/vulkan_renderer.h"
-#include "utils/logger.h"
+#include "graphyne/graphics/renderer.h"
+#include "graphyne/graphics/vulkan_renderer.h"
+#include "graphyne/utils/logger.h"
 
 namespace graphyne::graphics
 {

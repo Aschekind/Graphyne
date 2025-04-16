@@ -22,6 +22,14 @@ if defined VULKAN_SDK (
     echo You can get it from: https://vulkan.lunarg.com/sdk/home
 )
 
+:: Install required dependencies with Vulkan support
+echo Installing dependencies with vcpkg...
+%VCPKG_ROOT%\vcpkg install sdl2[vulkan]:x64-windows
+%VCPKG_ROOT%\vcpkg install vulkan:x64-windows
+%VCPKG_ROOT%\vcpkg install spdlog:x64-windows
+%VCPKG_ROOT%\vcpkg install glm:x64-windows
+%VCPKG_ROOT%\vcpkg install fmt:x64-windows
+
 :: Create build directory if it doesn't exist
 if not exist "build" mkdir build
 

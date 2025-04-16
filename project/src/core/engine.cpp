@@ -1,7 +1,7 @@
-#include "core/engine.h"
-#include "graphics/renderer.h"
-#include "platform/window.h"
-#include "utils/logger.h"
+#include "graphyne/core/engine.h"
+#include "graphyne/graphics/renderer.h"
+#include "graphyne/platform/window.h"
+#include "graphyne/utils/logger.h"
 
 namespace graphyne
 {

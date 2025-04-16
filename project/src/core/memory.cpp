@@ -1,5 +1,5 @@
-#include "core/memory.h"
-#include "utils/logger.h"
+#include "graphyne/core/memory.h"
+#include "graphyne/utils/logger.h"
 #include <algorithm>
 #include <cstring>
 
