@@ -146,11 +146,11 @@ if(GRAPHYNE_BUILD_EXAMPLES)
 endif()
 
 # Add tests if enabled
-#if(GRAPHYNE_BUILD_TESTS)
-#    enable_testing()
-#    find_package(GTest CONFIG REQUIRED)
-#    add_subdirectory(tests)
-#endif()
+if(GRAPHYNE_BUILD_TESTS)
+    enable_testing()
+    find_package(GTest CONFIG REQUIRED)
+    add_subdirectory(tests)
+endif()
 
 # Installation rules
 include(GNUInstallDirs)
