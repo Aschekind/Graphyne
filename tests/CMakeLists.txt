@@ -26,8 +26,8 @@ target_include_directories(graphyne_tests
 # Link with GTest and the main library
 target_link_libraries(graphyne_tests
     PRIVATE
-        GTest::gtest
-        GTest::gtest_main
+        gtest
+        gtest_main
         graphyne
 )
 
