@@ -25,7 +25,7 @@ jobs:
 
       - name: Cache SDL2
         id: cache-sdl2
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{github.workspace}}/external/SDL2
           key: ${{ runner.os }}-sdl2-2.28.5
@@ -43,7 +43,7 @@ jobs:
           cd ..
 
       - name: Cache CMake build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{github.workspace}}/build
           key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
@@ -84,7 +84,7 @@ jobs:
           sudo apt-get install -y libvulkan-dev libsdl2-dev
 
       - name: Cache CMake build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{github.workspace}}/build
           key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
