@@ -83,7 +83,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev
+          sudo apt-get install -y libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev libgtest-dev
+          cd /usr/src/gtest
+          sudo cmake CMakeLists.txt
+          sudo make
+          sudo cp lib/*.a /usr/lib
 
       - name: Cache CMake build
         uses: actions/cache@v4
