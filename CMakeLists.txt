@@ -96,6 +96,13 @@ endif()
 
 # Find dependencies using vcpkg
 find_package(Vulkan REQUIRED)
+
+# Set SDL2 paths for custom installation
+set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL2/cmake")
+set(SDL2_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL2")
+set(SDL2_INCLUDE_DIRS "${SDL2_PATH}/include")
+set(SDL2_LIBRARIES "${SDL2_PATH}/lib/x64/SDL2.lib" "${SDL2_PATH}/lib/x64/SDL2main.lib")
+
 find_package(SDL2 CONFIG REQUIRED)
 set(SPDLOG_HEADER_ONLY ON CACHE BOOL "" FORCE)
 find_package(spdlog CONFIG REQUIRED)
