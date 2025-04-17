@@ -1,0 +1,17 @@
+{
+  "name": "graphyne",
+  "version": "0.1.0",
+  "description": "A lightweight 3D game engine with a focus on low-level architecture and performance",
+  "dependencies": [
+    {
+      "name": "sdl2",
+      "features": ["vulkan"]
+    },
+    "vulkan",
+    "spdlog",
+    "glm",
+    "fmt",
+    "gtest"
+  ],
+  "builtin-baseline": "ce613c41372b23b1f51333815feb3edd87ef8a8b"
+}

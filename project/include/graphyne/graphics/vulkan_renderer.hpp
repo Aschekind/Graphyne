@@ -4,12 +4,13 @@
  */
 #pragma once
 
-#include "graphics/renderer.h"
+#include "graphyne/graphics/renderer.hpp"
 
 #include <vector>
 #include <vulkan/vulkan.h>
 
-namespace graphyne::graphics {
+namespace graphyne::graphics
+{
 
 /**
  * @class VulkanRenderer
@@ -100,21 +101,16 @@ private:
     bool m_framebufferResized = false;
 
     // Validation layers
-    const std::vector<const char*> m_validationLayers = {
-        "VK_LAYER_KHRONOS_validation"
-    };
+    const std::vector<const char*> m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
     // Device extensions
-    const std::vector<const char*> m_deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
+    const std::vector<const char*> m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     // Helper functions for validation layers
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                        VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                        void* pUserData);
 };
 
 } // namespace graphyne::graphics

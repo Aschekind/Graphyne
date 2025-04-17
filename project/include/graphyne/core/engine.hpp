@@ -8,14 +8,17 @@
 #include <string>
 #include <vector>
 
-namespace graphyne {
+namespace graphyne
+{
 
 // Forward declarations
-namespace graphics {
+namespace graphics
+{
 class Renderer;
 }
 
-namespace platform {
+namespace platform
+{
 class Window;
 }
 
@@ -32,18 +35,31 @@ public:
      */
     struct Config
     {
-        std::string appName = "Graphyne Application";
-        uint32_t windowWidth = 1280;
-        uint32_t windowHeight = 720;
-        bool enableValidation = true;
-        bool enableVSync = true;
+        std::string appName;
+        uint32_t windowWidth;
+        uint32_t windowHeight;
+        bool enableValidation;
+        bool enableVSync;
+        bool headless;
+        bool m_shouldClose;
+
+        Config()
+            : appName("Graphyne Application"),
+              windowWidth(1280),
+              windowHeight(720),
+              enableValidation(true),
+              enableVSync(true),
+              headless(false),
+              m_shouldClose(false)
+        {
+        }
     };
 
     /**
      * @brief Constructor
      * @param config Engine configuration
      */
-    explicit Engine(const Config& config = Config{});
+    explicit Engine(const Config& config = Config());
 
     /**
      * @brief Destructor
@@ -77,12 +93,18 @@ public:
      * @brief Check if the engine is running
      * @return True if the engine is running, false otherwise
      */
-    bool isRunning() const { return m_running; }
+    bool isRunning() const
+    {
+        return m_running;
+    }
 
     /**
      * @brief Stop the engine
      */
-    void stop() { m_running = false; }
+    void stop()
+    {
+        m_running = false;
+    }
 
 private:
     Config m_config;

@@ -96,19 +96,31 @@ endif()
 
 # Find dependencies using vcpkg
 find_package(Vulkan REQUIRED)
+
+# Set SDL2 paths for custom installation
+set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL2/cmake")
+set(SDL2_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL2")
+set(SDL2_INCLUDE_DIRS "${SDL2_PATH}/include")
+set(SDL2_LIBRARIES "${SDL2_PATH}/lib/x64/SDL2.lib" "${SDL2_PATH}/lib/x64/SDL2main.lib")
+
 find_package(SDL2 CONFIG REQUIRED)
+set(SPDLOG_HEADER_ONLY ON CACHE BOOL "" FORCE)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+set(FMT_HEADER_ONLY ON CACHE BOOL "" FORCE)
 find_package(fmt CONFIG REQUIRED)
+
 
 # Define the main library
 add_library(graphyne
     project/src/core/engine.cpp
+    project/src/core/event_system.cpp
     project/src/core/memory.cpp
     project/src/graphics/renderer.cpp
     project/src/graphics/vulkan_renderer.cpp
     project/src/utils/logger.cpp
     project/src/platform/window.cpp
+    project/src/controls/input_system.cpp
 )
 
 # Explicitly set the output directory for the graphyne library
@@ -132,9 +144,9 @@ target_link_libraries(graphyne
         Vulkan::Vulkan
         SDL2::SDL2
         SDL2::SDL2main
-        spdlog::spdlog
+        spdlog::spdlog_header_only
         glm::glm
-        fmt::fmt
+        fmt::fmt-header-only
 )
 
 # Add examples if enabled
@@ -143,11 +155,11 @@ if(GRAPHYNE_BUILD_EXAMPLES)
 endif()
 
 # Add tests if enabled
-#if(GRAPHYNE_BUILD_TESTS)
-#    enable_testing()
-#    find_package(GTest CONFIG REQUIRED)
-#    add_subdirectory(tests)
-#endif()
+if(GRAPHYNE_BUILD_TESTS)
+    enable_testing()
+    find_package(GTest CONFIG REQUIRED)
+    add_subdirectory(tests)
+endif()
 
 # Installation rules
 include(GNUInstallDirs)

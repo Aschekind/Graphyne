@@ -28,10 +28,12 @@ public:
      */
     struct Config
     {
-        std::string appName = "Graphyne Application";
-        uint32_t appVersion = 1;
-        bool enableValidation = true;
-        bool enableVSync = true;
+        std::string appName;
+        uint32_t appVersion;
+        bool enableValidation;
+        bool enableVSync;
+
+        Config() : appName("Graphyne Application"), appVersion(1), enableValidation(true), enableVSync(true) {}
     };
 
     /**
@@ -39,7 +41,7 @@ public:
      * @param window Window to render to
      * @param config Renderer configuration
      */
-    Renderer(platform::Window& window, const Config& config = Config{});
+    Renderer(platform::Window& window, const Config& config = Config());
 
     /**
      * @brief Virtual destructor
@@ -86,12 +88,12 @@ public:
     virtual void onResize(int width, int height) = 0;
 
     /**
-     * @brief Create a concrete renderer instance based on the selected backend
+     * @brief Create a new renderer instance
      * @param window Window to render to
      * @param config Renderer configuration
      * @return Unique pointer to the created renderer
      */
-    static std::unique_ptr<Renderer> create(platform::Window& window, const Config& config = Config{});
+    static std::unique_ptr<Renderer> create(platform::Window& window, const Config& config = Config());
 
 protected:
     platform::Window& m_window;

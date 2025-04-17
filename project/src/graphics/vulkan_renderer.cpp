@@ -1,6 +1,6 @@
-#include "graphics/vulkan_renderer.h"
-#include "platform/window.h"
-#include "utils/logger.h"
+#include "graphyne/graphics/vulkan_renderer.hpp"
+#include "graphyne/platform/window.hpp"
+#include "graphyne/utils/logger.hpp"
 #include <set>
 #include <stdexcept>
 

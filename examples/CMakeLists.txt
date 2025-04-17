@@ -3,11 +3,6 @@
 # Add an executable for the simple window example
 add_executable(simple_window simple_window.cpp)
 
-target_include_directories(simple_window
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/src  # This gives direct access to core/engine.h
-)
-
 # Link the example against the graphyne engine library
 target_link_libraries(simple_window
     PRIVATE
