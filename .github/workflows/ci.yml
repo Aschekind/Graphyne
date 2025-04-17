@@ -28,7 +28,8 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-          setupOnly: true
+          vcpkgGitCommitId: "2024.01.12" # Latest stable release
+          runVcpkgInstall: true
 
       - name: Install dependencies
         run: |
