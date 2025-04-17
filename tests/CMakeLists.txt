@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.20)
 # Enable testing
 enable_testing()
 
-# Find GTest package
-find_package(GTest REQUIRED)
-
 # Add coverage flags if coverage is enabled
 if(COVERAGE)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -29,8 +26,8 @@ target_include_directories(graphyne_tests
 # Link with GTest and the main library
 target_link_libraries(graphyne_tests
     PRIVATE
-        GTest::GTest
-        GTest::Main
+        GTest::gtest
+        GTest::gtest_main
         graphyne
 )
 
@@ -48,7 +45,6 @@ if(COVERAGE)
             COMMAND ${LCOV_EXE} --remove coverage.info '*/tests/*' '*/external/*' '*/vcpkg_installed/*' --output-file coverage.info
             COMMAND ${GENHTML_EXE} coverage.info --output-directory coverage_report
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            COMMENT "Generating coverage report"
         )
     endif()
 endif()
