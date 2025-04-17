@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 # Enable testing
 enable_testing()
 
+# Find GTest package
+find_package(GTest REQUIRED)
+
 # Add coverage flags if coverage is enabled
 if(COVERAGE)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -26,8 +29,8 @@ target_include_directories(graphyne_tests
 # Link with GTest and the main library
 target_link_libraries(graphyne_tests
     PRIVATE
-        gtest
-        gtest_main
+        GTest::GTest
+        GTest::Main
         graphyne
 )
 
