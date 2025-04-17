@@ -20,7 +20,9 @@ jobs:
       - name: Setup Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.1
         with:
-          vulkan-version: 1.3.243
+          vulkan-query-version: 1.4.309
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
 
       - name: Cache SDL2
         id: cache-sdl2
@@ -81,7 +83,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libvulkan-dev libsdl2-dev libspdlog-dev
+          sudo apt-get install -y libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev
 
       - name: Cache CMake build
         uses: actions/cache@v4
@@ -117,7 +119,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy libvulkan-dev libsdl2-dev libspdlog-dev
+          sudo apt-get install -y clang-tidy libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev
 
       - name: Create build directory for compile_commands.json
         run: |
