@@ -114,11 +114,13 @@ find_package(fmt CONFIG REQUIRED)
 # Define the main library
 add_library(graphyne
     project/src/core/engine.cpp
+    project/src/core/event_system.cpp
     project/src/core/memory.cpp
     project/src/graphics/renderer.cpp
     project/src/graphics/vulkan_renderer.cpp
     project/src/utils/logger.cpp
     project/src/platform/window.cpp
+    project/src/controls/input_system.cpp
 )
 
 # Explicitly set the output directory for the graphyne library

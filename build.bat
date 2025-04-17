@@ -22,13 +22,9 @@ if defined VULKAN_SDK (
     echo You can get it from: https://vulkan.lunarg.com/sdk/home
 )
 
-:: Install required dependencies with Vulkan support
+:: Install dependencies using manifest
 echo Installing dependencies with vcpkg...
-%VCPKG_ROOT%\vcpkg install sdl2[vulkan]:x64-windows
-%VCPKG_ROOT%\vcpkg install vulkan:x64-windows
-%VCPKG_ROOT%\vcpkg install spdlog:x64-windows
-%VCPKG_ROOT%\vcpkg install glm:x64-windows
-%VCPKG_ROOT%\vcpkg install fmt:x64-windows
+%VCPKG_ROOT%\vcpkg install --triplet x64-windows
 
 :: Create build directory if it doesn't exist
 if not exist "build" mkdir build
@@ -42,6 +38,8 @@ cmake -DCMAKE_BUILD_TYPE=Debug ^
       -DGRAPHYNE_BUILD_EXAMPLES=ON ^
       -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
       -DVCPKG_TARGET_TRIPLET=x64-windows ^
+      -DBUILD_TESTING=ON ^
+      -DGTEST_ROOT="%VCPKG_ROOT%\installed\x64-windows" ^
       ..
 
 :: Check if CMake configuration succeeded
@@ -50,13 +48,21 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-:: Build the Graphyne library
+:: Build the Graphyne library first
 echo Building Graphyne library...
 cmake --build . --config Debug --target graphyne
 
+:: Check if graphyne.lib was built
+if not exist "lib\Debug\graphyned.lib" (
+    echo [ERROR] graphyne.lib not found after building!
+    echo Searching for graphyne.lib in subdirectories...
+    dir /s /b graphyned.lib
+    exit /b 1
+)
+
 :: Build all targets
 echo Building all targets...
-cmake --build . --config Debug
+cmake --build . --config Debug -j 4
 
 :: Check if build was successful
 if %ERRORLEVEL% == 0 (
@@ -64,14 +70,12 @@ if %ERRORLEVEL% == 0 (
     echo Executables can be found in: %CD%\bin\Debug
 ) else (
     echo [ERROR] Build failed with error code: %ERRORLEVEL%
-    echo Checking if graphyne.lib was built...
-    if exist "Debug\graphyne.lib" (
-        echo graphyne.lib found at: %CD%\Debug\graphyne.lib
-    ) else (
-        echo [ERROR] graphyne.lib not found!
-        echo Searching for graphyne.lib in subdirectories...
-        dir /s /b graphyne.lib
-    )
+)
+
+:: Run tests if they exist
+if exist "Debug\test\graphyne_test.exe" (
+    echo Running tests...
+    Debug\test\graphyne_test.exe
 )
 
 :: Go back to root directory
