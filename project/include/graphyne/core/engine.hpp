@@ -35,20 +35,31 @@ public:
      */
     struct Config
     {
-        std::string appName = "Graphyne Application";
-        uint32_t windowWidth = 1280;
-        uint32_t windowHeight = 720;
-        bool enableValidation = true;
-        bool enableVSync = true;
-        bool headless = false; // When true, skips window and renderer creation
+        std::string appName;
+        uint32_t windowWidth;
+        uint32_t windowHeight;
+        bool enableValidation;
+        bool enableVSync;
+        bool headless;
         bool m_shouldClose;
+
+        Config()
+            : appName("Graphyne Application"),
+              windowWidth(1280),
+              windowHeight(720),
+              enableValidation(true),
+              enableVSync(true),
+              headless(false),
+              m_shouldClose(false)
+        {
+        }
     };
 
     /**
      * @brief Constructor
      * @param config Engine configuration
      */
-    explicit Engine(const Config& config = Config{});
+    explicit Engine(const Config& config = Config());
 
     /**
      * @brief Destructor
