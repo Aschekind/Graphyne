@@ -1,0 +1,56 @@
+name: Format
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Cache clang-format
+        uses: actions/cache@v3
+        with:
+          path: ~/.clang-format-cache
+          key: ${{ runner.os }}-clang-format-${{ hashFiles('**/.clang-format') }}
+          restore-keys: ${{ runner.os }}-clang-format-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        id: check-formatting
+        run: |
+          echo "Checking code formatting..."
+          find project examples tests -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" | xargs clang-format --dry-run --Werror
+          FORMAT_EXIT_CODE=$?
+          if [ $FORMAT_EXIT_CODE -ne 0 ]; then
+            echo "::error::Code formatting issues found. Run clang-format to fix them."
+            exit 1
+          else
+            echo "Code formatting check passed!"
+          fi
+
+      - name: Format code
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Formatting code..."
+          find project examples tests -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" | xargs clang-format -i
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "style: format code"
+            git push
+            echo "Code formatting applied and changes pushed"
+          else
+            echo "No formatting changes needed"
+          fi

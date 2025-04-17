@@ -1,10 +1,9 @@
 name: CI
-
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   build-windows:
@@ -12,16 +11,26 @@ jobs:
     strategy:
       matrix:
         build_type: [Debug, Release]
-
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.0
         with:
           vulkan-version: 1.3.243
 
+      - name: Cache SDL2
+        id: cache-sdl2
+        uses: actions/cache@v3
+        with:
+          path: ${{github.workspace}}/external/SDL2
+          key: ${{ runner.os }}-sdl2-2.28.5
+
       - name: Install SDL2
+        if: steps.cache-sdl2.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           mkdir -p external
@@ -32,26 +41,91 @@ jobs:
           Move-Item "SDL2-$SDL2_VERSION" SDL2
           cd ..
 
+      - name: Cache CMake build
+        uses: actions/cache@v3
+        with:
+          path: ${{github.workspace}}/build
+          key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-cmake-${{ matrix.build_type }}-
+
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j 4
 
       - name: Test
         working-directory: ${{github.workspace}}/build
         run: ctest -C ${{matrix.build_type}} --output-on-failure
 
-  code-quality:
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-windows-${{matrix.build_type}}
+          path: |
+            ${{github.workspace}}/build/${{matrix.build_type}}/*.exe
+            ${{github.workspace}}/build/${{matrix.build_type}}/*.dll
+          if-no-files-found: warn
+
+  build-linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy clang-format
+          sudo apt-get install -y libvulkan-dev libsdl2-dev
 
-      - name: Run clang-format
+      - name: Cache CMake build
+        uses: actions/cache@v3
+        with:
+          path: ${{github.workspace}}/build
+          key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-cmake-${{ matrix.build_type }}-
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j $(nproc)
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-linux-${{matrix.build_type}}
+          path: ${{github.workspace}}/build/bin/*
+          if-no-files-found: warn
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
         run: |
-          find src include -iname *.cpp -o -iname *.h -o -iname *.hpp | xargs clang-format --dry-run --Werror
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+
+      - name: Create build directory for compile_commands.json
+        run: |
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+
+      - name: Run clang-tidy
+        run: |
+          echo "Running static analysis..."
+          find project examples tests -iname "*.cpp" | xargs clang-tidy -p build --warnings-as-errors='*' || echo "::warning::Static analysis found issues"
