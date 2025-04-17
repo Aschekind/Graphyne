@@ -40,6 +40,7 @@ public:
         uint32_t windowHeight = 720;
         bool enableValidation = true;
         bool enableVSync = true;
+        bool headless = false; // When true, skips window and renderer creation
         bool m_shouldClose;
     };
 

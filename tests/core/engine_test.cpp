@@ -14,6 +14,7 @@ protected:
         Engine::Config config;
         config.enableValidation = false; // Disable validation for tests
         config.enableVSync = false;      // Disable VSync for tests
+        config.headless = true;          // Enable headless mode for tests
         engine = std::make_unique<Engine>(config);
     }
 

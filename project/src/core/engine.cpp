@@ -30,25 +30,28 @@ bool Engine::initialize()
 
     GN_INFO("Initializing Graphyne Engine");
 
-    // Create window
-    m_window = std::make_unique<platform::Window>(m_config.windowWidth, m_config.windowHeight, m_config.appName);
-    if (!m_window->initialize())
+    if (!m_config.headless)
     {
-        GN_ERROR("Failed to initialize window");
-        return false;
-    }
+        // Create window
+        m_window = std::make_unique<platform::Window>(m_config.windowWidth, m_config.windowHeight, m_config.appName);
+        if (!m_window->initialize())
+        {
+            GN_ERROR("Failed to initialize window");
+            return false;
+        }
 
-    // Create renderer
-    graphics::Renderer::Config rendererConfig;
-    rendererConfig.appName = m_config.appName;
-    rendererConfig.enableValidation = m_config.enableValidation;
-    rendererConfig.enableVSync = m_config.enableVSync;
+        // Create renderer
+        graphics::Renderer::Config rendererConfig;
+        rendererConfig.appName = m_config.appName;
+        rendererConfig.enableValidation = m_config.enableValidation;
+        rendererConfig.enableVSync = m_config.enableVSync;
 
-    m_renderer = graphics::Renderer::create(*m_window, rendererConfig);
-    if (!m_renderer || !m_renderer->initialize())
-    {
-        GN_ERROR("Failed to initialize renderer");
-        return false;
+        m_renderer = graphics::Renderer::create(*m_window, rendererConfig);
+        if (!m_renderer || !m_renderer->initialize())
+        {
+            GN_ERROR("Failed to initialize renderer");
+            return false;
+        }
     }
 
     m_initialized = true;
