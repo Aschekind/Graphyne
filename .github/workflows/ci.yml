@@ -25,7 +25,7 @@ jobs:
           vulkan-use-cache: true
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v13
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
           setupOnly: true
