@@ -45,7 +45,9 @@ jobs:
           cmake -B ${{github.workspace}}/build `
             -DCMAKE_BUILD_TYPE=${{matrix.build_type}} `
             -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DBUILD_TESTING=ON `
+            -DGTEST_ROOT="${{github.workspace}}/vcpkg/installed/x64-windows"
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j 4
@@ -91,7 +93,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cmake-${{ matrix.build_type }}-
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_TESTING=ON
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j $(nproc)
