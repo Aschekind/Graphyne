@@ -31,12 +31,7 @@ jobs:
           runVcpkgInstall: true
 
       - name: Install dependencies
-        run: |
-          vcpkg install sdl2[vulkan]:x64-windows
-          vcpkg install vulkan:x64-windows
-          vcpkg install spdlog:x64-windows
-          vcpkg install glm:x64-windows
-          vcpkg install fmt:x64-windows
+        run: vcpkg install --triplet x64-windows
 
       - name: Cache CMake build
         uses: actions/cache@v4
