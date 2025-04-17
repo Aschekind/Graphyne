@@ -1,4 +1,4 @@
-name: Format
+name: Coding Style Enforcement
 
 on:
   workflow_dispatch:

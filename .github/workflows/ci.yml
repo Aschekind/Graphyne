@@ -1,4 +1,5 @@
-name: CI
+name: Cross-Platform Build & Quality Check
+
 on:
   push:
     branches: [develop]
