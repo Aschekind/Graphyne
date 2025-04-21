@@ -10,10 +10,6 @@
 
 int main(int argc, char* argv[])
 {
-    // Initialize the logger
-    graphyne::utils::Logger::getInstance().initialize("simple_window.log", graphyne::utils::LogLevel::Debug);
-    graphyne::utils::info("Simple Window Example Starting");
-
     // Configure the engine
     graphyne::Engine::Config config;
     config.appName = "Graphyne Simple Window";
