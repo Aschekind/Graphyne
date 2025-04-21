@@ -291,9 +291,7 @@ private:
         std::optional<std::chrono::time_point<std::chrono::steady_clock>> expiresAt;
     };
 
-    core::UnorderedMap<std::type_index,
-                       core::Vector<SubscriptionEntry>,
-                       core::AllocationType::General> m_subscribers;
+    core::UnorderedMap<std::type_index, core::Vector<SubscriptionEntry>, core::AllocationType::General> m_subscribers;
     core::Vector<SubscriptionEntry, core::AllocationType::General> m_globalSubscribers;
     std::mutex m_mutex;
     size_t m_lastSubscriptionId;
