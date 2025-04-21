@@ -15,6 +15,8 @@
 #include <optional>
 #include <chrono>
 
+#include "graphyne/core/memory.hpp"
+
 namespace graphyne::events
 {
 
@@ -287,8 +289,10 @@ private:
         std::optional<std::chrono::time_point<std::chrono::steady_clock>> expiresAt;
     };
 
-    std::unordered_map<std::type_index, std::vector<SubscriptionEntry>> m_subscribers;
-    std::vector<SubscriptionEntry> m_globalSubscribers;
+    core::UnorderedMap<std::type_index,
+                       core::Vector<SubscriptionEntry>,
+                       core::AllocationType::General> m_subscribers;
+    core::Vector<SubscriptionEntry, core::AllocationType::General> m_globalSubscribers;
     std::mutex m_mutex;
     size_t m_lastSubscriptionId;
     std::chrono::time_point<std::chrono::steady_clock> m_lastCleanupTime;

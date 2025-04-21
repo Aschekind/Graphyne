@@ -5,6 +5,7 @@
 #pragma once
 
 #include "graphyne/graphics/renderer.hpp"
+#include "graphyne/core/memory.hpp"
 
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -91,8 +92,8 @@ private:
     VkQueue m_presentQueue = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
-    std::vector<VkImage> m_swapChainImages;
-    std::vector<VkImageView> m_swapChainImageViews;
+    core::Vector<VkImage, core::AllocationType::Graphics> m_swapChainImages;
+    core::Vector<VkImageView, core::AllocationType::Graphics> m_swapChainImageViews;
     VkFormat m_swapChainImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_swapChainExtent = {0, 0};
 
@@ -101,10 +102,10 @@ private:
     bool m_framebufferResized = false;
 
     // Validation layers
-    const std::vector<const char*> m_validationLayers = {"VK_LAYER_KHRONOS_validation"};
+    core::Vector<const char*, core::AllocationType::Graphics> m_validationLayers;
 
     // Device extensions
-    const std::vector<const char*> m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    core::Vector<const char*, core::AllocationType::Graphics> m_deviceExtensions;
 
     // Helper functions for validation layers
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

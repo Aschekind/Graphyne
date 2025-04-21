@@ -2,6 +2,7 @@
 #include "graphyne/graphics/renderer.hpp"
 #include "graphyne/platform/window.hpp"
 #include "graphyne/utils/logger.hpp"
+#include "graphyne/core/memory.hpp"
 
 namespace graphyne
 {
@@ -27,6 +28,14 @@ bool Engine::initialize()
         GN_ERROR("Failed to initialize logger");
         return false;
     }
+    GN_INFO("Logger initialized successfully");
+
+    if (!core::MemoryManager::getInstance().initialize())
+    {
+        GN_ERROR("Failed to initialize memory manager");
+        return false;
+    }
+    GN_INFO("Memory manager initialized successfully");
 
     GN_INFO("Initializing Graphyne Engine");
 
