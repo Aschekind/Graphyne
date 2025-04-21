@@ -1,10 +1,17 @@
 #include "graphyne/utils/logger.hpp"
 #include <chrono>
 #include <ctime>
+#include <fmt/color.h>
+#include <fmt/chrono.h>
 #include <iomanip>
+#include <source_location>
 
 namespace graphyne::utils
 {
+
+SourceLocation SourceLocation::current(const char* file, int line) {
+    return {file, line};
+}
 
 Logger& Logger::getInstance()
 {
@@ -16,7 +23,7 @@ bool Logger::initialize(const std::string& logFile, LogLevel level, bool toConso
 {
     if (m_initialized)
     {
-        GN_WARNING("Logger already initialized");
+        warning("Logger already initialized");
         return true;
     }
 
@@ -28,12 +35,15 @@ bool Logger::initialize(const std::string& logFile, LogLevel level, bool toConso
         m_fileStream.open(logFile, std::ios::out | std::ios::app);
         if (!m_fileStream.is_open())
         {
-            GN_ERROR("Failed to open log file: {}", logFile);
+            if (m_toConsole) {
+                fmt::print(stderr, "Failed to open log file: {}\n", logFile);
+            }
             return false;
         }
     }
 
     m_initialized = true;
+    info("Logger initialized");
     return true;
 }
 
@@ -43,6 +53,8 @@ void Logger::shutdown()
     {
         return;
     }
+
+    info("Logger shutting down");
 
     if (m_fileStream.is_open())
     {
@@ -55,22 +67,63 @@ void Logger::shutdown()
 void Logger::setLogLevel(LogLevel level)
 {
     m_logLevel = level;
+    info(fmt::format("Log level set to {}", levelToString(level)));
 }
 
-void Logger::log(LogLevel level, const std::string& message)
+void Logger::log(LogLevel level, const std::string& message, const SourceLocation& location)
 {
     if (!m_initialized || level < m_logLevel)
     {
         return;
     }
 
-    std::string formattedMessage = formatMessage(level, message);
+    auto now = std::chrono::system_clock::now();
+    std::string fileName = location.file;
+
+    // Extract just the filename from the path
+    size_t lastSlash = fileName.find_last_of("/\\");
+    if (lastSlash != std::string::npos) {
+        fileName = fileName.substr(lastSlash + 1);
+    }
+
+    // Format the log message using fmt
+    std::string formattedMessage = fmt::format("{:%Y-%m-%d %H:%M:%S}.{:03d} [{}] [{}:{}] {}",
+        fmt::localtime(std::chrono::system_clock::to_time_t(now)),
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000,
+        levelToString(level),
+        fileName,
+        location.line,
+        message);
 
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_toConsole)
     {
-        std::cout << formattedMessage << std::endl;
+        // Use fmt::color to add colors based on log level
+        switch (level)
+        {
+            case LogLevel::Trace:
+                fmt::print(fg(fmt::color::gray), "{}\n", formattedMessage);
+                break;
+            case LogLevel::Debug:
+                fmt::print(fg(fmt::color::light_blue), "{}\n", formattedMessage);
+                break;
+            case LogLevel::Info:
+                fmt::print(fg(fmt::color::white), "{}\n", formattedMessage);
+                break;
+            case LogLevel::Warning:
+                fmt::print(fg(fmt::color::yellow), "{}\n", formattedMessage);
+                break;
+            case LogLevel::Error:
+                fmt::print(fg(fmt::color::red), "{}\n", formattedMessage);
+                break;
+            case LogLevel::Fatal:
+                fmt::print(fg(fmt::color::dark_red) | fmt::emphasis::bold, "{}\n", formattedMessage);
+                break;
+            default:
+                fmt::print("{}\n", formattedMessage);
+                break;
+        }
     }
 
     if (m_fileStream.is_open())
@@ -80,34 +133,34 @@ void Logger::log(LogLevel level, const std::string& message)
     }
 }
 
-void Logger::trace(const std::string& message)
+void Logger::trace(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Trace, message);
+    log(LogLevel::Trace, message, location);
 }
 
-void Logger::debug(const std::string& message)
+void Logger::debug(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Debug, message);
+    log(LogLevel::Debug, message, location);
 }
 
-void Logger::info(const std::string& message)
+void Logger::info(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Info, message);
+    log(LogLevel::Info, message, location);
 }
 
-void Logger::warning(const std::string& message)
+void Logger::warning(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Warning, message);
+    log(LogLevel::Warning, message, location);
 }
 
-void Logger::error(const std::string& message)
+void Logger::error(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Error, message);
+    log(LogLevel::Error, message, location);
 }
 
-void Logger::fatal(const std::string& message)
+void Logger::fatal(const std::string& message, const SourceLocation& location)
 {
-    log(LogLevel::Fatal, message);
+    log(LogLevel::Fatal, message, location);
 }
 
 std::string Logger::levelToString(LogLevel level)
@@ -131,49 +184,35 @@ std::string Logger::levelToString(LogLevel level)
     }
 }
 
-std::string Logger::formatMessage(LogLevel level, const std::string& message)
+// Modified global logging functions that capture source location
+void trace(const std::string& message, const SourceLocation& location)
 {
-    auto now = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::to_time_t(now);
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
-    ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
-    ss << " [" << levelToString(level) << "] " << message;
-
-    return ss.str();
+    Logger::getInstance().trace(message, location);
 }
 
-// Global logging functions
-void trace(const std::string& message)
+void debug(const std::string& message, const SourceLocation& location)
 {
-    Logger::getInstance().trace(message);
+    Logger::getInstance().debug(message, location);
 }
 
-void debug(const std::string& message)
+void info(const std::string& message, const SourceLocation& location)
 {
-    Logger::getInstance().debug(message);
+    Logger::getInstance().info(message, location);
 }
 
-void info(const std::string& message)
+void warning(const std::string& message, const SourceLocation& location)
 {
-    Logger::getInstance().info(message);
+    Logger::getInstance().warning(message, location);
 }
 
-void warning(const std::string& message)
+void error(const std::string& message, const SourceLocation& location)
 {
-    Logger::getInstance().warning(message);
+    Logger::getInstance().error(message, location);
 }
 
-void error(const std::string& message)
+void fatal(const std::string& message, const SourceLocation& location)
 {
-    Logger::getInstance().error(message);
-}
-
-void fatal(const std::string& message)
-{
-    Logger::getInstance().fatal(message);
+    Logger::getInstance().fatal(message, location);
 }
 
 } // namespace graphyne::utils

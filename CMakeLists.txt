@@ -26,6 +26,12 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         CACHE STRING "Vcpkg toolchain file")
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    set(SANITIZE_FLAGS "-fsanitize=address -g -O1")
+    add_compile_options(${SANITIZE_FLAGS})
+    add_link_options(${SANITIZE_FLAGS})
+endif()
+
 # Set build type to Debug by default
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the build type" FORCE)
@@ -114,8 +120,8 @@ find_package(fmt CONFIG REQUIRED)
 # Define the main library
 add_library(graphyne
     project/src/core/engine.cpp
-    project/src/core/event_system.cpp
     project/src/core/memory.cpp
+    project/src/events/event_system.cpp
     project/src/graphics/renderer.cpp
     project/src/graphics/vulkan_renderer.cpp
     project/src/utils/logger.cpp
