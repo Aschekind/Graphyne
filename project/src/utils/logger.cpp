@@ -1,15 +1,16 @@
 #include "graphyne/utils/logger.hpp"
 #include <chrono>
 #include <ctime>
-#include <fmt/color.h>
 #include <fmt/chrono.h>
+#include <fmt/color.h>
 #include <iomanip>
 #include <source_location>
 
 namespace graphyne::utils
 {
 
-SourceLocation SourceLocation::current(const char* file, int line) {
+SourceLocation SourceLocation::current(const char* file, int line)
+{
     return {file, line};
 }
 
@@ -35,7 +36,8 @@ bool Logger::initialize(const std::string& logFile, LogLevel level, bool toConso
         m_fileStream.open(logFile, std::ios::out | std::ios::app);
         if (!m_fileStream.is_open())
         {
-            if (m_toConsole) {
+            if (m_toConsole)
+            {
                 fmt::print(stderr, "Failed to open log file: {}\n", logFile);
             }
             return false;
@@ -82,18 +84,20 @@ void Logger::log(LogLevel level, const std::string& message, const SourceLocatio
 
     // Extract just the filename from the path
     size_t lastSlash = fileName.find_last_of("/\\");
-    if (lastSlash != std::string::npos) {
+    if (lastSlash != std::string::npos)
+    {
         fileName = fileName.substr(lastSlash + 1);
     }
 
     // Format the log message using fmt
-    std::string formattedMessage = fmt::format("{:%Y-%m-%d %H:%M:%S}.{:03d} [{}] [{}:{}] {}",
-        fmt::localtime(std::chrono::system_clock::to_time_t(now)),
-        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000,
-        levelToString(level),
-        fileName,
-        location.line,
-        message);
+    std::string formattedMessage =
+        fmt::format("{:%Y-%m-%d %H:%M:%S}.{:03d} [{}] [{}:{}] {}",
+                    fmt::localtime(std::chrono::system_clock::to_time_t(now)),
+                    std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000,
+                    levelToString(level),
+                    fileName,
+                    location.line,
+                    message);
 
     std::lock_guard<std::mutex> lock(m_mutex);
 

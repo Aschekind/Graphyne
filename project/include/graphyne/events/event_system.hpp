@@ -5,15 +5,15 @@
 #pragma once
 
 #include <any>
+#include <chrono>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
-#include <mutex>
-#include <optional>
-#include <chrono>
 
 #include "graphyne/core/memory.hpp"
 
@@ -262,10 +262,11 @@ public:
 private:
     // Private constructor for singleton
     EventSystem()
-        : m_lastSubscriptionId(0)
-        , m_lastCleanupTime(std::chrono::steady_clock::now())
-        , m_cleanupInterval(std::chrono::minutes(5)) // Clean up every 5 minutes by default
-    {}
+        : m_lastSubscriptionId(0),
+          m_lastCleanupTime(std::chrono::steady_clock::now()),
+          m_cleanupInterval(std::chrono::minutes(5)) // Clean up every 5 minutes by default
+    {
+    }
 
     // Deleted copy and move constructors and assignment operators
     EventSystem(const EventSystem&) = delete;
@@ -283,7 +284,8 @@ private:
      * @struct SubscriptionEntry
      * @brief Stores subscription data with expiration information
      */
-    struct SubscriptionEntry {
+    struct SubscriptionEntry
+    {
         size_t id;
         EventCallback callback;
         std::optional<std::chrono::time_point<std::chrono::steady_clock>> expiresAt;

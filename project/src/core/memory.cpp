@@ -133,7 +133,9 @@ void* MemoryManager::allocate(size_t size, size_t alignment, AllocationType type
     if (pool.used + totalSize > pool.size)
     {
         GN_ERROR("Memory pool out of memory. Type: {}, Requested: {} bytes, Available: {} bytes",
-                static_cast<int>(type), totalSize, pool.size - pool.used);
+                 static_cast<int>(type),
+                 totalSize,
+                 pool.size - pool.used);
         return nullptr;
     }
 
@@ -230,12 +232,24 @@ void MemoryManager::printStatistics() const
         const char* typeName = "Unknown";
         switch (type)
         {
-            case AllocationType::General: typeName = "General"; break;
-            case AllocationType::Graphics: typeName = "Graphics"; break;
-            case AllocationType::Audio: typeName = "Audio"; break;
-            case AllocationType::Physics: typeName = "Physics"; break;
-            case AllocationType::Script: typeName = "Script"; break;
-            case AllocationType::Temp: typeName = "Temporary"; break;
+            case AllocationType::General:
+                typeName = "General";
+                break;
+            case AllocationType::Graphics:
+                typeName = "Graphics";
+                break;
+            case AllocationType::Audio:
+                typeName = "Audio";
+                break;
+            case AllocationType::Physics:
+                typeName = "Physics";
+                break;
+            case AllocationType::Script:
+                typeName = "Script";
+                break;
+            case AllocationType::Temp:
+                typeName = "Temporary";
+                break;
         }
 
         std::lock_guard<std::mutex> lock(pool.mutex);

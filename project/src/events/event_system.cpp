@@ -1,6 +1,6 @@
 #include "graphyne/events/event_system.hpp"
-#include <mutex>
 #include <algorithm>
+#include <mutex>
 
 namespace graphyne::events
 {
@@ -33,10 +33,9 @@ void EventSystem::unsubscribe(size_t subscriptionId)
     // Search in type-specific subscribers
     for (auto& [typeIndex, callbacks] : m_subscribers)
     {
-        auto it = std::find_if(callbacks.begin(), callbacks.end(),
-            [subscriptionId](const SubscriptionEntry& entry) {
-                return entry.id == subscriptionId;
-            });
+        auto it = std::find_if(callbacks.begin(), callbacks.end(), [subscriptionId](const SubscriptionEntry& entry) {
+            return entry.id == subscriptionId;
+        });
 
         if (it != callbacks.end())
         {
@@ -46,11 +45,9 @@ void EventSystem::unsubscribe(size_t subscriptionId)
     }
 
     // Search in global subscribers
-    auto it = std::find_if(
-        m_globalSubscribers.begin(), m_globalSubscribers.end(),
-        [subscriptionId](const SubscriptionEntry& entry) {
-            return entry.id == subscriptionId;
-        });
+    auto it = std::find_if(m_globalSubscribers.begin(),
+                           m_globalSubscribers.end(),
+                           [subscriptionId](const SubscriptionEntry& entry) { return entry.id == subscriptionId; });
 
     if (it != m_globalSubscribers.end())
     {
@@ -90,9 +87,12 @@ void EventSystem::publishEvent(Event& event)
     {
         if (!event.isHandled())
         {
-            try {
+            try
+            {
                 callback(event);
-            } catch (const std::exception& e) {
+            }
+            catch (const std::exception& e)
+            {
                 // Log exception but continue with other subscribers
                 // In a real implementation, you would use your logger here
                 // Logger::error("Exception in event callback: {}", e.what());
@@ -105,9 +105,12 @@ void EventSystem::publishEvent(Event& event)
     {
         if (!event.isHandled())
         {
-            try {
+            try
+            {
                 callback(event);
-            } catch (const std::exception& e) {
+            }
+            catch (const std::exception& e)
+            {
                 // Log exception but continue with other subscribers
                 // Logger::error("Exception in event callback: {}", e.what());
             }
@@ -139,12 +142,10 @@ void EventSystem::cleanupStaleSubscribers()
     // Clean up type-specific subscribers that haven't been active recently
     for (auto& [typeIndex, subscribers] : m_subscribers)
     {
-        auto it = std::remove_if(subscribers.begin(), subscribers.end(),
-            [this, now](const SubscriptionEntry& entry) {
-                // If the subscription has an expiration time and it's passed
-                return entry.expiresAt.has_value() &&
-                       now > entry.expiresAt.value();
-            });
+        auto it = std::remove_if(subscribers.begin(), subscribers.end(), [this, now](const SubscriptionEntry& entry) {
+            // If the subscription has an expiration time and it's passed
+            return entry.expiresAt.has_value() && now > entry.expiresAt.value();
+        });
 
         if (it != subscribers.end())
         {
@@ -153,10 +154,9 @@ void EventSystem::cleanupStaleSubscribers()
     }
 
     // Clean up global subscribers
-    auto it = std::remove_if(m_globalSubscribers.begin(), m_globalSubscribers.end(),
-        [this, now](const SubscriptionEntry& entry) {
-            return entry.expiresAt.has_value() &&
-                   now > entry.expiresAt.value();
+    auto it = std::remove_if(
+        m_globalSubscribers.begin(), m_globalSubscribers.end(), [this, now](const SubscriptionEntry& entry) {
+            return entry.expiresAt.has_value() && now > entry.expiresAt.value();
         });
 
     if (it != m_globalSubscribers.end())
@@ -167,8 +167,9 @@ void EventSystem::cleanupStaleSubscribers()
 
 void EventSystem::setSubscriptionTimeout(size_t subscriptionId, std::chrono::seconds timeout)
 {
-    if (timeout.count() <= 0) {
-        return;  // Ignore invalid timeouts
+    if (timeout.count() <= 0)
+    {
+        return; // Ignore invalid timeouts
     }
 
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -205,15 +206,13 @@ bool EventSystem::isSubscriptionActive(size_t subscriptionId)
     // Check in type-specific subscribers
     for (const auto& [typeIndex, callbacks] : m_subscribers)
     {
-        auto it = std::find_if(callbacks.begin(), callbacks.end(),
-            [subscriptionId](const SubscriptionEntry& entry) {
-                return entry.id == subscriptionId;
-            });
+        auto it = std::find_if(callbacks.begin(), callbacks.end(), [subscriptionId](const SubscriptionEntry& entry) {
+            return entry.id == subscriptionId;
+        });
 
         if (it != callbacks.end())
         {
-            if (!it->expiresAt.has_value() ||
-                std::chrono::steady_clock::now() <= it->expiresAt.value())
+            if (!it->expiresAt.has_value() || std::chrono::steady_clock::now() <= it->expiresAt.value())
             {
                 return true;
             }
@@ -222,15 +221,13 @@ bool EventSystem::isSubscriptionActive(size_t subscriptionId)
     }
 
     // Check in global subscribers
-    auto it = std::find_if(m_globalSubscribers.begin(), m_globalSubscribers.end(),
-        [subscriptionId](const SubscriptionEntry& entry) {
-            return entry.id == subscriptionId;
-        });
+    auto it = std::find_if(m_globalSubscribers.begin(),
+                           m_globalSubscribers.end(),
+                           [subscriptionId](const SubscriptionEntry& entry) { return entry.id == subscriptionId; });
 
     if (it != m_globalSubscribers.end())
     {
-        if (!it->expiresAt.has_value() ||
-            std::chrono::steady_clock::now() <= it->expiresAt.value())
+        if (!it->expiresAt.has_value() || std::chrono::steady_clock::now() <= it->expiresAt.value())
         {
             return true;
         }

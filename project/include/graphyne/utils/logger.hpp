@@ -25,13 +25,12 @@ namespace graphyne::utils
  * @struct SourceLocation
  * @brief Structure to hold source file and line number information
  */
-struct SourceLocation {
+struct SourceLocation
+{
     const char* file;
     int line;
 
-    static SourceLocation current(
-        const char* file = __builtin_FILE(),
-        int line = __builtin_LINE());
+    static SourceLocation current(const char* file = __builtin_FILE(), int line = __builtin_LINE());
 };
 
 /**
@@ -171,33 +170,39 @@ void fatal(const std::string& message, const SourceLocation& location = SourceLo
 #define GN_FATAL(...) ::graphyne::utils::fatal(fmt::format(__VA_ARGS__))
 
 // Template variadic versions for direct formatting support
-template<typename... Args>
-void logTrace(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logTrace(fmt::format_string<Args...> fmt, Args&&... args)
+{
     trace(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
-template<typename... Args>
-void logDebug(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logDebug(fmt::format_string<Args...> fmt, Args&&... args)
+{
     debug(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
-template<typename... Args>
-void logInfo(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logInfo(fmt::format_string<Args...> fmt, Args&&... args)
+{
     info(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
-template<typename... Args>
-void logWarning(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logWarning(fmt::format_string<Args...> fmt, Args&&... args)
+{
     warning(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
-template<typename... Args>
-void logError(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logError(fmt::format_string<Args...> fmt, Args&&... args)
+{
     error(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
-template<typename... Args>
-void logFatal(fmt::format_string<Args...> fmt, Args&&... args) {
+template <typename... Args>
+void logFatal(fmt::format_string<Args...> fmt, Args&&... args)
+{
     fatal(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
