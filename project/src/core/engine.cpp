@@ -1,8 +1,8 @@
 #include "graphyne/core/engine.hpp"
+#include "graphyne/core/memory.hpp"
 #include "graphyne/graphics/renderer.hpp"
 #include "graphyne/platform/window.hpp"
 #include "graphyne/utils/logger.hpp"
-#include "graphyne/core/memory.hpp"
 
 namespace graphyne
 {

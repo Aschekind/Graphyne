@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "graphyne/graphics/renderer.hpp"
 #include "graphyne/core/memory.hpp"
+#include "graphyne/graphics/renderer.hpp"
 
 #include <vector>
 #include <vulkan/vulkan.h>
