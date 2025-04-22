@@ -121,6 +121,7 @@ find_package(fmt CONFIG REQUIRED)
 add_library(graphyne
     project/src/core/engine.cpp
     project/src/core/memory.cpp
+    project/src/core/vulkan_resource_manager.cpp
     project/src/events/event_system.cpp
     project/src/graphics/renderer.cpp
     project/src/graphics/vulkan_renderer.cpp
