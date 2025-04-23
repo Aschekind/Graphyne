@@ -25,6 +25,7 @@ class World;
 class System;
 class Entity;
 class ComponentRegistry;
+struct Component;
 
 // Type definitions
 using EntityID = uint32_t;
@@ -37,6 +38,65 @@ constexpr size_t MAX_SYSTEMS = 32;
 
 // ComponentMask using bitset to track which components an entity has
 using ComponentMask = std::bitset<MAX_COMPONENTS>;
+
+/**
+ * @class ComponentRegistry
+ * @brief Registry for component types
+ */
+class ComponentRegistry
+{
+public:
+    /**
+     * @brief Register a component type
+     * @tparam T Component type
+     * @return ID for the component type
+     */
+    template <typename T>
+    static ComponentTypeID registerComponentType()
+    {
+        static_assert(std::is_base_of<Component, T>::value, "Type must derive from Component");
+
+        ComponentTypeID id = getNextComponentTypeID();
+        assert(id < MAX_COMPONENTS && "Too many component types registered");
+
+        // Register component size and alignment for pool allocation
+        getComponentSizes()[id] = sizeof(T);
+
+        return id;
+    }
+
+    /**
+     * @brief Get the size of a component type
+     * @param id Component type ID
+     * @return Size of the component type
+     */
+    static size_t getComponentSize(ComponentTypeID id)
+    {
+        assert(id < MAX_COMPONENTS);
+        return getComponentSizes()[id];
+    }
+
+private:
+    /**
+     * @brief Get the next component type ID
+     * @return Next available component type ID
+     */
+    static ComponentTypeID getNextComponentTypeID()
+    {
+        static ComponentTypeID nextID = 0;
+        return nextID++;
+    }
+
+    /**
+     * @brief Get array of component sizes
+     * @return Reference to the array of component sizes
+     */
+    static std::array<size_t, MAX_COMPONENTS>& getComponentSizes()
+    {
+        static std::array<size_t, MAX_COMPONENTS> componentSizes = {};
+        return componentSizes;
+    }
+};
 
 /**
  * @brief Helper to get unique component type ID
@@ -235,65 +295,6 @@ private:
     size_t m_componentSize = 0;
     size_t m_size = 0;
     size_t m_capacity = 0;
-};
-
-/**
- * @class ComponentRegistry
- * @brief Registry for component types
- */
-class ComponentRegistry
-{
-public:
-    /**
-     * @brief Register a component type
-     * @tparam T Component type
-     * @return ID for the component type
-     */
-    template <typename T>
-    static ComponentTypeID registerComponentType()
-    {
-        static_assert(std::is_base_of<Component, T>::value, "Type must derive from Component");
-
-        ComponentTypeID id = getNextComponentTypeID();
-        assert(id < MAX_COMPONENTS && "Too many component types registered");
-
-        // Register component size and alignment for pool allocation
-        getComponentSizes()[id] = sizeof(T);
-
-        return id;
-    }
-
-    /**
-     * @brief Get the size of a component type
-     * @param id Component type ID
-     * @return Size of the component type
-     */
-    static size_t getComponentSize(ComponentTypeID id)
-    {
-        assert(id < MAX_COMPONENTS);
-        return getComponentSizes()[id];
-    }
-
-private:
-    /**
-     * @brief Get the next component type ID
-     * @return Next available component type ID
-     */
-    static ComponentTypeID getNextComponentTypeID()
-    {
-        static ComponentTypeID nextID = 0;
-        return nextID++;
-    }
-
-    /**
-     * @brief Get array of component sizes
-     * @return Reference to the array of component sizes
-     */
-    static std::array<size_t, MAX_COMPONENTS>& getComponentSizes()
-    {
-        static std::array<size_t, MAX_COMPONENTS> componentSizes = {};
-        return componentSizes;
-    }
 };
 
 /**

@@ -2,6 +2,7 @@
  * @file ecs.cpp
  * @brief Implementation of Entity-Component-System architecture
  */
+
 #include "graphyne/core/ecs/ecs.hpp"
 #include "graphyne/events/event_system.hpp"
 #include "graphyne/utils/logger.hpp"
@@ -232,6 +233,7 @@ void World::ensureComponentPoolExists(ComponentTypeID componentID)
 {
     if (!m_componentPools[componentID])
     {
+        // Use the component registry from the instance or another method to get component size
         size_t componentSize = ComponentRegistry::getComponentSize(componentID);
         m_componentPools[componentID] = std::make_unique<ComponentPool>(componentSize);
     }
