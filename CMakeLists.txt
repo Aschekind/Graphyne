@@ -27,7 +27,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    set(SANITIZE_FLAGS "-fsanitize=address -g -O1")
+    set(SANITIZE_FLAGS -fsanitize=address -g -O1)
     add_compile_options(${SANITIZE_FLAGS})
     add_link_options(${SANITIZE_FLAGS})
 endif()
