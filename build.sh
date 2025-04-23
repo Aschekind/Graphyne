@@ -41,6 +41,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DVCPKG_TARGET_TRIPLET=x64-linux \
       -DBUILD_TESTING=ON \
       -DGTEST_ROOT="$VCPKG_ROOT/installed/x64-linux" \
+      -DCMAKE_CXX_FLAGS="-fsanitize=address -g -O1" \
       ..
 
 # Check if CMake configuration succeeded
