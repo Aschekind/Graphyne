@@ -89,6 +89,8 @@ void Engine::shutdown()
         m_window.reset();
     }
 
+    core::MemoryManager::getInstance().shutdown();
+
     m_initialized = false;
     GN_INFO("Engine shutdown complete");
 }
