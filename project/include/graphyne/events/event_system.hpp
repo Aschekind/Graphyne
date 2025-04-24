@@ -149,6 +149,11 @@ public:
     static EventSystem& getInstance();
 
     /**
+     * @brief Destructor
+     */
+    ~EventSystem() = delete;
+
+    /**
      * @brief Subscribe to events of a specific type
      * @tparam T Event type to subscribe to
      * @param callback Function to call when event is published
@@ -159,7 +164,7 @@ public:
     {
         auto wrappedCallback = [callback](Event& event) { callback(static_cast<T&>(event)); };
 
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::recursive_mutex> lock(m_mutex);
         size_t id = getNextSubscriptionId();
 
         std::type_index typeIndex(typeid(T));
@@ -203,7 +208,7 @@ public:
      */
     size_t subscribeToAllWithTimeout(const EventCallback& callback, std::chrono::seconds timeout)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::recursive_mutex> lock(m_mutex);
         size_t id = getNextSubscriptionId();
         auto expiresAt = std::chrono::steady_clock::now() + timeout;
         m_globalSubscribers.push_back({id, callback, expiresAt});
@@ -293,7 +298,7 @@ private:
 
     core::UnorderedMap<std::type_index, core::Vector<SubscriptionEntry>, core::AllocationType::General> m_subscribers;
     core::Vector<SubscriptionEntry, core::AllocationType::General> m_globalSubscribers;
-    std::mutex m_mutex;
+    std::recursive_mutex m_mutex;
     size_t m_lastSubscriptionId;
     std::chrono::time_point<std::chrono::steady_clock> m_lastCleanupTime;
     std::chrono::seconds m_cleanupInterval;

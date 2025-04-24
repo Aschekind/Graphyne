@@ -7,28 +7,28 @@ namespace graphyne::events
 
 EventSystem& EventSystem::getInstance()
 {
-    static EventSystem instance;
-    return instance;
+    static EventSystem* instance = new EventSystem();
+    return *instance;
 }
 
 size_t EventSystem::getNextSubscriptionId()
 {
     // Thread-safe way to generate unique subscription IDs
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     return ++m_lastSubscriptionId;
 }
 
 size_t EventSystem::subscribeToAll(const EventCallback& callback)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     size_t id = getNextSubscriptionId();
-    m_globalSubscribers.push_back({id, callback});
+    m_globalSubscribers.push_back({id, callback, std::nullopt});
     return id;
 }
 
 void EventSystem::unsubscribe(size_t subscriptionId)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
     // Search in type-specific subscribers
     for (auto& [typeIndex, callbacks] : m_subscribers)
@@ -64,7 +64,7 @@ void EventSystem::publishEvent(Event& event)
     std::vector<EventCallback> globalCallbacks;
 
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
         // Copy type-specific subscribers
         if (m_subscribers.find(typeIndex) != m_subscribers.end())
@@ -120,14 +120,25 @@ void EventSystem::publishEvent(Event& event)
 
 void EventSystem::clearSubscribers()
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_subscribers.clear();
-    m_globalSubscribers.clear();
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+    if (!m_subscribers.empty())
+    {
+        for (auto& pair : m_subscribers)
+        {
+            pair.second.clear();
+        }
+        m_subscribers.clear();
+    }
+    if (!m_globalSubscribers.empty())
+    {
+        m_globalSubscribers.clear();
+    }
 }
 
 void EventSystem::cleanupStaleSubscribers()
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
     auto now = std::chrono::steady_clock::now();
 
@@ -172,7 +183,7 @@ void EventSystem::setSubscriptionTimeout(size_t subscriptionId, std::chrono::sec
         return; // Ignore invalid timeouts
     }
 
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     auto expiresAt = std::chrono::steady_clock::now() + timeout;
 
     // Set timeout for type-specific subscribers
@@ -201,7 +212,7 @@ void EventSystem::setSubscriptionTimeout(size_t subscriptionId, std::chrono::sec
 
 bool EventSystem::isSubscriptionActive(size_t subscriptionId)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
     // Check in type-specific subscribers
     for (const auto& [typeIndex, callbacks] : m_subscribers)
