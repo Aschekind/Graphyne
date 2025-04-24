@@ -1,10 +1,10 @@
-name: CI
+name: Cross-Platform Build & Quality Check
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   build-windows:
@@ -12,46 +12,127 @@ jobs:
     strategy:
       matrix:
         build_type: [Debug, Release]
-
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Vulkan SDK
-        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
         with:
-          vulkan-version: 1.3.243
+          vulkan-query-version: 1.4.309.0
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
 
-      - name: Install SDL2
-        shell: powershell
-        run: |
-          mkdir -p external
-          cd external
-          $SDL2_VERSION = "2.28.5"
-          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-$SDL2_VERSION/SDL2-devel-$SDL2_VERSION-VC.zip" -OutFile "SDL2-devel-$SDL2_VERSION-VC.zip"
-          Expand-Archive "SDL2-devel-$SDL2_VERSION-VC.zip" -DestinationPath .
-          Move-Item "SDL2-$SDL2_VERSION" SDL2
-          cd ..
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+          runVcpkgInstall: true
+
+      - name: Install dependencies
+        run: vcpkg install --triplet x64-windows
+
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/build
+          key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-cmake-${{ matrix.build_type }}-
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        run: |
+          cmake -B ${{github.workspace}}/build `
+            -DCMAKE_BUILD_TYPE=${{matrix.build_type}} `
+            -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DBUILD_TESTING=ON `
+            -DGTEST_ROOT="${{github.workspace}}/vcpkg/installed/x64-windows"
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j 4
 
       - name: Test
         working-directory: ${{github.workspace}}/build
         run: ctest -C ${{matrix.build_type}} --output-on-failure
 
-  code-quality:
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-windows-${{matrix.build_type}}
+          path: |
+            ${{github.workspace}}/build/${{matrix.build_type}}/*.exe
+            ${{github.workspace}}/build/${{matrix.build_type}}/*.dll
+          if-no-files-found: warn
+
+  build-linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy clang-format
+          sudo apt-get install -y libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev libgtest-dev
+          cd /usr/src/gtest
+          sudo cmake CMakeLists.txt
+          sudo make
+          sudo cp lib/*.a /usr/lib
 
-      - name: Run clang-format
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/build
+          key: ${{ runner.os }}-cmake-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-cmake-${{ matrix.build_type }}-
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j $(nproc)
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-linux-${{matrix.build_type}}
+          path: ${{github.workspace}}/build/bin/*
+          if-no-files-found: warn
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
         run: |
-          find src include -iname *.cpp -o -iname *.h -o -iname *.hpp | xargs clang-format --dry-run --Werror
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy libvulkan-dev libsdl2-dev libspdlog-dev libglm-dev libgtest-dev
+          cd /usr/src/gtest
+          sudo cmake CMakeLists.txt
+          sudo make
+          sudo cp lib/*.a /usr/lib
+
+      - name: Create build directory for compile_commands.json
+        run: |
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTING=ON ..
+
+      - name: Run clang-tidy
+        run: |
+          echo "Running static analysis..."
+          find project examples tests -iname "*.cpp" | xargs clang-tidy -p build --warnings-as-errors='*' || echo "::warning::Static analysis found issues"

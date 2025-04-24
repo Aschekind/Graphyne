@@ -1,7 +1,8 @@
-#include "core/engine.h"
-#include "graphics/renderer.h"
-#include "platform/window.h"
-#include "utils/logger.h"
+#include "graphyne/core/engine.hpp"
+#include "graphyne/core/memory.hpp"
+#include "graphyne/graphics/renderer.hpp"
+#include "graphyne/platform/window.hpp"
+#include "graphyne/utils/logger.hpp"
 
 namespace graphyne
 {
@@ -27,28 +28,39 @@ bool Engine::initialize()
         GN_ERROR("Failed to initialize logger");
         return false;
     }
+    GN_INFO("Logger initialized successfully");
+
+    if (!core::MemoryManager::getInstance().initialize())
+    {
+        GN_ERROR("Failed to initialize memory manager");
+        return false;
+    }
+    GN_INFO("Memory manager initialized successfully");
 
     GN_INFO("Initializing Graphyne Engine");
 
-    // Create window
-    m_window = std::make_unique<platform::Window>(m_config.windowWidth, m_config.windowHeight, m_config.appName);
-    if (!m_window->initialize())
+    if (!m_config.headless)
     {
-        GN_ERROR("Failed to initialize window");
-        return false;
-    }
+        // Create window
+        m_window = std::make_unique<platform::Window>(m_config.windowWidth, m_config.windowHeight, m_config.appName);
+        if (!m_window->initialize())
+        {
+            GN_ERROR("Failed to initialize window");
+            return false;
+        }
 
-    // Create renderer
-    graphics::Renderer::Config rendererConfig;
-    rendererConfig.appName = m_config.appName;
-    rendererConfig.enableValidation = m_config.enableValidation;
-    rendererConfig.enableVSync = m_config.enableVSync;
+        // Create renderer
+        graphics::Renderer::Config rendererConfig;
+        rendererConfig.appName = m_config.appName;
+        rendererConfig.enableValidation = m_config.enableValidation;
+        rendererConfig.enableVSync = m_config.enableVSync;
 
-    m_renderer = graphics::Renderer::create(*m_window, rendererConfig);
-    if (!m_renderer || !m_renderer->initialize())
-    {
-        GN_ERROR("Failed to initialize renderer");
-        return false;
+        m_renderer = graphics::Renderer::create(*m_window, rendererConfig);
+        if (!m_renderer || !m_renderer->initialize())
+        {
+            GN_ERROR("Failed to initialize renderer");
+            return false;
+        }
     }
 
     m_initialized = true;
@@ -76,6 +88,8 @@ void Engine::shutdown()
         m_window->shutdown();
         m_window.reset();
     }
+
+    core::MemoryManager::getInstance().shutdown();
 
     m_initialized = false;
     GN_INFO("Engine shutdown complete");
@@ -105,6 +119,12 @@ int Engine::run()
 void Engine::processEvents()
 {
     m_window->processEvents();
+
+    if (m_window->shouldClose())
+    {
+        m_running = false;
+        GN_INFO("Window close requested, stopping engine loop");
+    }
 }
 
 void Engine::update(float deltaTime)
