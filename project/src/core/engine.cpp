@@ -6,9 +6,14 @@
 #include "platform/input.h"
 #include "platform/platform.h"
 #include "platform/window.h"
+#include "resources/resource_manager.h"
 #include "rhi/device.h"
 #include "rhi/swapchain.h"
 #include "utils/logger.h"
+
+#ifndef GRAPHYNE_SHADER_DIR
+#define GRAPHYNE_SHADER_DIR ""
+#endif
 
 namespace gn {
 
@@ -56,10 +61,17 @@ Result<void> Engine::initialize() {
         return Err{r.error()};
     }
 
+    m_resources = std::make_unique<resources::ResourceManager>();
+    if (auto r = m_resources->initialize(*m_device); !r) {
+        GN_ERROR("ResourceManager init failed: {}", r.error().what());
+        return Err{r.error()};
+    }
+
     m_renderer = std::make_unique<graphics::Renderer>();
     graphics::Renderer::Config rcfg;
-    rcfg.vsync = m_config.vsync;
-    if (auto r = m_renderer->initialize(*m_device, *m_swapchain, *m_window, rcfg); !r) {
+    rcfg.vsync      = m_config.vsync;
+    rcfg.shader_dir = GRAPHYNE_SHADER_DIR;
+    if (auto r = m_renderer->initialize(*m_device, *m_swapchain, *m_window, *m_resources, rcfg); !r) {
         GN_ERROR("Renderer init failed: {}", r.error().what());
         return Err{r.error()};
     }
@@ -75,6 +87,7 @@ void Engine::shutdown() {
     if (m_device) m_device->wait_idle();
 
     m_renderer.reset();
+    m_resources.reset();
     m_swapchain.reset();
     m_device.reset();
     m_input.reset();
@@ -137,8 +150,9 @@ int Engine::run(App& app) {
     return 0;
 }
 
-platform::Window&  Engine::window()   { return *m_window; }
-platform::Input&   Engine::input()    { return *m_input; }
-graphics::Renderer& Engine::renderer() { return *m_renderer; }
+platform::Window&            Engine::window()    { return *m_window; }
+platform::Input&             Engine::input()     { return *m_input; }
+graphics::Renderer&          Engine::renderer()  { return *m_renderer; }
+resources::ResourceManager&  Engine::resources() { return *m_resources; }
 
 } // namespace gn

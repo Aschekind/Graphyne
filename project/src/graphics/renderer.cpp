@@ -14,11 +14,13 @@ Renderer::~Renderer() { shutdown(); }
 Result<void> Renderer::initialize(rhi::Device& device,
                                   rhi::Swapchain& swapchain,
                                   platform::Window& window,
+                                  resources::ResourceManager& resources,
                                   const Config& cfg)
 {
     m_device    = &device;
     m_swapchain = &swapchain;
     m_window    = &window;
+    m_resources = &resources;
     m_config    = cfg;
 
     auto r1 = m_command_pool.initialize(device, kMaxFramesInFlight);
@@ -30,6 +32,11 @@ Result<void> Renderer::initialize(rhi::Device& device,
         }
     }
 
+    if (auto r = m_sprite_renderer.initialize(device, resources,
+                                              swapchain.image_format(),
+                                              cfg.shader_dir); !r) return r;
+
+    m_camera.viewport = swapchain.extent();
     GN_INFO("Renderer initialized ({} frames in flight)", kMaxFramesInFlight);
     return Ok();
 }
@@ -37,6 +44,7 @@ Result<void> Renderer::initialize(rhi::Device& device,
 void Renderer::shutdown() {
     if (m_device) {
         m_device->wait_idle();
+        m_sprite_renderer.shutdown();
         for (auto& s : m_sync) {
             rhi::destroy_frame_sync(*m_device, s);
         }
@@ -45,6 +53,7 @@ void Renderer::shutdown() {
     m_device    = nullptr;
     m_swapchain = nullptr;
     m_window    = nullptr;
+    m_resources = nullptr;
 }
 
 void Renderer::on_resize() {
@@ -139,6 +148,10 @@ Frame* Renderer::begin_frame(f64 time, f32 delta) {
     m_current_frame.target_extent = m_swapchain->extent();
     m_frame_in_progress           = true;
 
+    // Keep the camera viewport in sync with the swapchain.
+    m_camera.viewport = m_swapchain->extent();
+    m_sprite_renderer.begin_frame(m_frame_index, m_camera);
+
     return &m_current_frame;
 }
 
@@ -172,7 +185,23 @@ void Renderer::end_frame() {
     ri.pColorAttachments    = &color;
 
     vkCmdBeginRendering(cmd, &ri);
-    // TODO: future SpriteRenderer::flush(cmd) goes here.
+
+    // Viewport + scissor (dynamic state in the sprite pipeline).
+    VkViewport viewport{};
+    viewport.x        = 0.0f;
+    viewport.y        = 0.0f;
+    viewport.width    = static_cast<f32>(m_current_frame.target_extent.width);
+    viewport.height   = static_cast<f32>(m_current_frame.target_extent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = {m_current_frame.target_extent.width, m_current_frame.target_extent.height};
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    m_sprite_renderer.flush(cmd);
     vkCmdEndRendering(cmd);
 
     // COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR

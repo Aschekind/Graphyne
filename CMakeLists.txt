@@ -36,12 +36,13 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithD
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
-option(GRAPHYNE_BUILD_EXAMPLES "Build example applications" ON)
-option(GRAPHYNE_BUILD_TESTS    "Build unit tests"           ON)
-option(GRAPHYNE_USE_ASAN       "Enable Address Sanitizer"   OFF)
-option(GRAPHYNE_USE_CLANG_TIDY "Enable clang-tidy"          OFF)
-option(GRAPHYNE_COVERAGE       "Enable code coverage (Debug, GCC/Clang)" OFF)
-option(GRAPHYNE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors"   OFF)
+option(GRAPHYNE_BUILD_EXAMPLES    "Build example applications"                     ON)
+option(GRAPHYNE_BUILD_TESTS       "Build unit tests"                               ON)
+option(GRAPHYNE_USE_ASAN          "Enable Address Sanitizer"                       OFF)
+option(GRAPHYNE_USE_CLANG_TIDY    "Enable clang-tidy"                              OFF)
+option(GRAPHYNE_COVERAGE          "Enable code coverage (Debug, GCC/Clang)"        OFF)
+option(GRAPHYNE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors"             OFF)
+option(GRAPHYNE_COMPILE_SHADERS   "Compile GLSL shaders to SPIR-V at build time"   ON)
 
 # ---------------------------------------------------------------------------
 # CMake modules
@@ -49,6 +50,7 @@ option(GRAPHYNE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors"   OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GraphyneUtils)
 include(GraphyneCoverage)
+include(GraphyneShaders)
 
 # ---------------------------------------------------------------------------
 # Compiler flags
@@ -112,11 +114,21 @@ endif()
 # ---------------------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------------------
-find_package(Vulkan REQUIRED)
+# Vulkan COMPONENTS request makes FindVulkan populate Vulkan_GLSLANG_VALIDATOR_EXECUTABLE
+# and Vulkan_GLSLC_EXECUTABLE when those tools are present alongside the loader.
+find_package(Vulkan REQUIRED OPTIONAL_COMPONENTS glslangValidator glslc)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+
+# stb is header-only. vcpkg installs the headers; on Ubuntu it ships via
+# libstb-dev. Probe both layouts.
+find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb)
+if(NOT STB_INCLUDE_DIR)
+    message(FATAL_ERROR "stb_image.h not found. Install 'stb' via vcpkg or 'libstb-dev' on Debian/Ubuntu.")
+endif()
+message(STATUS "stb headers: ${STB_INCLUDE_DIR}")
 
 # ---------------------------------------------------------------------------
 # Library target
@@ -137,8 +149,17 @@ set(GRAPHYNE_SOURCES
     project/src/rhi/swapchain.cpp
     project/src/rhi/command.cpp
     project/src/rhi/sync.cpp
+    project/src/rhi/buffer.cpp
+    project/src/rhi/image.cpp
+    project/src/rhi/shader.cpp
 
+    project/src/resources/asset_paths.cpp
+    project/src/resources/image_loader.cpp
+    project/src/resources/resource_manager.cpp
+
+    project/src/graphics/camera.cpp
     project/src/graphics/renderer.cpp
+    project/src/graphics/sprite_renderer.cpp
 
     project/src/utils/logger.cpp
 )
@@ -159,6 +180,34 @@ target_include_directories(graphyne
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/project/src
+        ${STB_INCLUDE_DIR}
+)
+
+# Bake the source-tree assets directory into the binary so example apps can
+# load files like 'foo.jpg' relative to the asset root without configuring
+# anything at runtime.
+target_compile_definitions(graphyne
+    PRIVATE
+        GRAPHYNE_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/assets"
+)
+
+# Compile GLSL -> SPIR-V into ${BINARY_DIR}/bin/shaders (unless explicitly
+# disabled — useful when the toolchain doesn't ship glslangValidator and the
+# user wants to bring their own .spv files).
+set(GRAPHYNE_SHADER_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin/shaders)
+if(GRAPHYNE_COMPILE_SHADERS)
+    graphyne_compile_shaders(
+        TARGET     graphyne_shaders
+        OUTPUT_DIR ${GRAPHYNE_SHADER_OUTPUT_DIR}
+        SOURCES
+            shaders/sprite.vert
+            shaders/sprite.frag
+    )
+    add_dependencies(graphyne graphyne_shaders)
+endif()
+target_compile_definitions(graphyne
+    PRIVATE
+        GRAPHYNE_SHADER_DIR="${GRAPHYNE_SHADER_OUTPUT_DIR}"
 )
 
 target_link_libraries(graphyne
@@ -254,3 +303,10 @@ message(STATUS "  Coverage:          ${GRAPHYNE_COVERAGE}")
 message(STATUS "  ASan:              ${GRAPHYNE_USE_ASAN}")
 message(STATUS "  Clang-Tidy:        ${GRAPHYNE_USE_CLANG_TIDY}")
 message(STATUS "  Werror:            ${GRAPHYNE_WARNINGS_AS_ERRORS}")
+message(STATUS "  Compile shaders:   ${GRAPHYNE_COMPILE_SHADERS}")
+if(Vulkan_GLSLANG_VALIDATOR_EXECUTABLE)
+    message(STATUS "  glslangValidator:  ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}")
+endif()
+if(Vulkan_GLSLC_EXECUTABLE)
+    message(STATUS "  glslc:             ${Vulkan_GLSLC_EXECUTABLE}")
+endif()

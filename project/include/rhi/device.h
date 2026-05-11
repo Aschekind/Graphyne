@@ -11,6 +11,7 @@
 #include "core/result.h"
 #include "core/types.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -60,6 +61,17 @@ public:
     VkQueue           present_queue()    const { return m_present_queue; }
     QueueFamilyIndices queue_families()  const { return m_queue_families; }
     bool              validation_enabled() const { return m_validation; }
+    u32               effective_api_version() const { return m_effective_api_version; }
+
+    /// Find a memory type index satisfying `type_filter` (from
+    /// VkMemoryRequirements::memoryTypeBits) AND containing all of
+    /// `required_flags`. Returns ~0u on failure.
+    u32 find_memory_type(u32 type_filter, VkMemoryPropertyFlags required_flags) const;
+
+    /// Run a one-shot command on the graphics queue (allocates a transient
+    /// command buffer, executes the lambda, submits, and waits for completion).
+    /// Used by upload paths (texture/buffer staging).
+    void submit_one_shot(const std::function<void(VkCommandBuffer)>& fn);
 
 private:
     Result<void> create_instance(const Config& cfg, const std::vector<const char*>& window_exts);
@@ -77,8 +89,11 @@ private:
     VkDevice                 m_device          = VK_NULL_HANDLE;
     VkQueue                  m_graphics_queue  = VK_NULL_HANDLE;
     VkQueue                  m_present_queue   = VK_NULL_HANDLE;
-    QueueFamilyIndices       m_queue_families  = {};
-    bool                     m_validation      = false;
+    QueueFamilyIndices       m_queue_families       = {};
+    bool                     m_validation           = false;
+    u32                      m_effective_api_version = 0;
+    // One-shot command pool used by upload helpers.
+    VkCommandPool            m_one_shot_pool        = VK_NULL_HANDLE;
 
     // Required device extensions (swapchain + anything we need for VK 1.3 dyn rendering).
     std::vector<const char*> m_device_extensions = {

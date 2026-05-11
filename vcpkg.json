@@ -6,10 +6,14 @@
   "dependencies": [
     "vulkan",
     "vulkan-headers",
-    "sdl2",
+    {
+      "name": "sdl2",
+      "features": ["vulkan"]
+    },
     "spdlog",
     "glm",
     "fmt",
+    "stb",
     {
       "name": "gtest",
       "host": false

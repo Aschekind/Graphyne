@@ -5,6 +5,7 @@
 
 #include <SDL2/SDL_vulkan.h>
 
+#include <algorithm>
 #include <cstring>
 #include <set>
 #include <string>
@@ -72,6 +73,24 @@ Result<void> Device::initialize(platform::Window& window, const Config& cfg) {
         GN_WARNING("Validation layers requested but not available — continuing without them.");
     }
 
+    // Discover what the loader can give us and cap the requested API version
+    // to that. Without this we fail on systems with a 1.2 loader even if the
+    // GPU itself would support 1.3.
+    u32 loader_version = VK_API_VERSION_1_0;
+    if (vkEnumerateInstanceVersion) {
+        vkEnumerateInstanceVersion(&loader_version);
+    }
+    GN_INFO("Vulkan loader reports {}.{}.{}",
+            VK_VERSION_MAJOR(loader_version),
+            VK_VERSION_MINOR(loader_version),
+            VK_VERSION_PATCH(loader_version));
+    if (loader_version < cfg.api_version) {
+        GN_WARNING("Requested Vulkan {}.{}.{} but loader only provides {}.{}.{} — capping.",
+                   VK_VERSION_MAJOR(cfg.api_version), VK_VERSION_MINOR(cfg.api_version), VK_VERSION_PATCH(cfg.api_version),
+                   VK_VERSION_MAJOR(loader_version), VK_VERSION_MINOR(loader_version), VK_VERSION_PATCH(loader_version));
+    }
+    m_effective_api_version = std::min(cfg.api_version, loader_version);
+
     auto window_exts = window.required_instance_extensions();
     auto r1 = create_instance(cfg, window_exts);
     if (!r1) return r1;
@@ -98,6 +117,10 @@ Result<void> Device::initialize(platform::Window& window, const Config& cfg) {
 
 void Device::shutdown() {
     if (m_device != VK_NULL_HANDLE) {
+        if (m_one_shot_pool != VK_NULL_HANDLE) {
+            vkDestroyCommandPool(m_device, m_one_shot_pool, nullptr);
+            m_one_shot_pool = VK_NULL_HANDLE;
+        }
         vkDestroyDevice(m_device, nullptr);
         m_device = VK_NULL_HANDLE;
     }
@@ -133,7 +156,7 @@ Result<void> Device::create_instance(const Config& cfg, const std::vector<const 
     app.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
     app.pEngineName        = "Graphyne";
     app.engineVersion      = VK_MAKE_VERSION(0, 2, 0);
-    app.apiVersion         = cfg.api_version;
+    app.apiVersion         = m_effective_api_version;
 
     std::vector<const char*> exts(window_exts.begin(), window_exts.end());
     if (m_validation) {
@@ -293,7 +316,58 @@ Result<void> Device::create_logical_device() {
 
     vkGetDeviceQueue(m_device, m_queue_families.graphics, 0, &m_graphics_queue);
     vkGetDeviceQueue(m_device, m_queue_families.present,  0, &m_present_queue);
+
+    // One-shot command pool for upload helpers. TRANSIENT_BIT hints that
+    // buffers from this pool are short-lived.
+    VkCommandPoolCreateInfo ci{};
+    ci.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    ci.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    ci.queueFamilyIndex = m_queue_families.graphics;
+    if (vkCreateCommandPool(m_device, &ci, nullptr, &m_one_shot_pool) != VK_SUCCESS) {
+        return Err{Error{"vkCreateCommandPool (one-shot) failed"}};
+    }
     return Ok();
+}
+
+u32 Device::find_memory_type(u32 type_filter, VkMemoryPropertyFlags required_flags) const {
+    VkPhysicalDeviceMemoryProperties props{};
+    vkGetPhysicalDeviceMemoryProperties(m_physical_device, &props);
+    for (u32 i = 0; i < props.memoryTypeCount; ++i) {
+        const bool type_ok = (type_filter & (1u << i)) != 0;
+        const bool flags_ok = (props.memoryTypes[i].propertyFlags & required_flags) == required_flags;
+        if (type_ok && flags_ok) return i;
+    }
+    return ~0u;
+}
+
+void Device::submit_one_shot(const std::function<void(VkCommandBuffer)>& fn) {
+    if (m_one_shot_pool == VK_NULL_HANDLE || !fn) return;
+
+    VkCommandBufferAllocateInfo ai{};
+    ai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.commandPool        = m_one_shot_pool;
+    ai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    ai.commandBufferCount = 1;
+    VkCommandBuffer cmd = VK_NULL_HANDLE;
+    if (vkAllocateCommandBuffers(m_device, &ai, &cmd) != VK_SUCCESS) return;
+
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmd, &bi);
+
+    fn(cmd);
+
+    vkEndCommandBuffer(cmd);
+
+    VkSubmitInfo si{};
+    si.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = 1;
+    si.pCommandBuffers    = &cmd;
+
+    vkQueueSubmit(m_graphics_queue, 1, &si, VK_NULL_HANDLE);
+    vkQueueWaitIdle(m_graphics_queue);
+    vkFreeCommandBuffers(m_device, m_one_shot_pool, 1, &cmd);
 }
 
 } // namespace gn::rhi

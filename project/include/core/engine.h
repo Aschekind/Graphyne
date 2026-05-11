@@ -25,9 +25,10 @@ namespace gn {
 
 class App;
 
-namespace platform { class Platform; class Window; class Input; }
-namespace rhi      { class Device; class Swapchain; }
-namespace graphics { class Renderer; }
+namespace platform  { class Platform; class Window; class Input; }
+namespace rhi       { class Device; class Swapchain; }
+namespace graphics  { class Renderer; }
+namespace resources { class ResourceManager; }
 
 class Engine {
 public:
@@ -67,9 +68,10 @@ public:
     bool running()     const { return m_running; }
 
     // Accessors for App / subsystem code that needs them.
-    platform::Window&  window();
-    platform::Input&   input();
-    graphics::Renderer& renderer();
+    platform::Window&            window();
+    platform::Input&             input();
+    graphics::Renderer&          renderer();
+    resources::ResourceManager&  resources();
 
     const Config& config() const { return m_config; }
 
@@ -78,12 +80,13 @@ private:
     bool   m_initialized = false;
     bool   m_running     = false;
 
-    std::unique_ptr<platform::Platform>  m_platform;
-    std::unique_ptr<platform::Window>    m_window;
-    std::unique_ptr<platform::Input>     m_input;
-    std::unique_ptr<rhi::Device>         m_device;
-    std::unique_ptr<rhi::Swapchain>      m_swapchain;
-    std::unique_ptr<graphics::Renderer>  m_renderer;
+    std::unique_ptr<platform::Platform>           m_platform;
+    std::unique_ptr<platform::Window>             m_window;
+    std::unique_ptr<platform::Input>              m_input;
+    std::unique_ptr<rhi::Device>                  m_device;
+    std::unique_ptr<rhi::Swapchain>               m_swapchain;
+    std::unique_ptr<resources::ResourceManager>   m_resources;
+    std::unique_ptr<graphics::Renderer>           m_renderer;
 };
 
 } // namespace gn

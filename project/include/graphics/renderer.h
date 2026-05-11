@@ -10,16 +10,20 @@
 
 #include "core/result.h"
 #include "core/types.h"
+#include "graphics/camera.h"
 #include "graphics/color.h"
 #include "graphics/frame.h"
+#include "graphics/sprite_renderer.h"
 #include "rhi/command.h"
 #include "rhi/sync.h"
 
 #include <array>
 #include <memory>
+#include <string>
 
 namespace gn::rhi      { class Device; class Swapchain; }
 namespace gn::platform { class Window; }
+namespace gn::resources { class ResourceManager; }
 
 namespace gn::graphics {
 
@@ -28,7 +32,9 @@ public:
     static constexpr u32 kMaxFramesInFlight = 2;
 
     struct Config {
-        bool vsync = true;
+        bool        vsync       = true;
+        /// Directory holding compiled SPIR-V (sprite.vert.spv, sprite.frag.spv).
+        std::string shader_dir;
     };
 
     Renderer() = default;
@@ -42,6 +48,7 @@ public:
     Result<void> initialize(rhi::Device& device,
                             rhi::Swapchain& swapchain,
                             platform::Window& window,
+                            resources::ResourceManager& resources,
                             const Config& cfg = {});
 
     void shutdown();
@@ -59,6 +66,12 @@ public:
 
     Color& clear_color() { return m_current_frame.clear_color; }
 
+    /// Access the sprite renderer to queue draws inside App::on_render.
+    SpriteRenderer& sprites() { return m_sprite_renderer; }
+
+    /// Camera used for 2D rendering. Mutate in App::on_update before draws.
+    Camera2D& camera() { return m_camera; }
+
 private:
     void   transition_image(VkCommandBuffer cmd, VkImage img,
                             VkImageLayout old_layout, VkImageLayout new_layout,
@@ -66,12 +79,15 @@ private:
                             VkPipelineStageFlags2 dst_stage, VkAccessFlags2 dst_access);
     Result<void> recreate_swapchain();
 
-    rhi::Device*       m_device    = nullptr;
-    rhi::Swapchain*    m_swapchain = nullptr;
-    platform::Window*  m_window    = nullptr;
+    rhi::Device*                 m_device    = nullptr;
+    rhi::Swapchain*              m_swapchain = nullptr;
+    platform::Window*            m_window    = nullptr;
+    resources::ResourceManager*  m_resources = nullptr;
 
     rhi::CommandPool   m_command_pool;
     std::array<rhi::FrameSync, kMaxFramesInFlight> m_sync;
+    SpriteRenderer     m_sprite_renderer;
+    Camera2D           m_camera;
 
     Config m_config;
     u32    m_frame_index           = 0;
