@@ -2,9 +2,10 @@
 
 include(CMakeFindDependencyMacro)
 
-# Find dependencies
-find_dependency(Vulkan REQUIRED)
-find_dependency(SDL2 REQUIRED)
+find_dependency(Vulkan)
+find_dependency(SDL2 CONFIG)
+find_dependency(spdlog CONFIG)
+find_dependency(glm CONFIG)
+find_dependency(fmt CONFIG)
 
-# Include the targets file
 include("${CMAKE_CURRENT_LIST_DIR}/graphyne-targets.cmake")

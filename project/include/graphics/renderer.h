@@ -1,101 +1,85 @@
 /**
- * @file renderer.h
- * @brief Graphics renderer interface
+ * @file graphics/renderer.h
+ * @brief High-level renderer that drives the RHI.
+ *
+ * Owns the per-frame command pool and sync primitives. Game code
+ * never touches Vulkan directly — it gets a Frame in on_render and
+ * (eventually) draws sprites/meshes through the renderer's APIs.
  */
 #pragma once
 
+#include "core/result.h"
+#include "core/types.h"
+#include "graphics/color.h"
+#include "graphics/frame.h"
+#include "rhi/command.h"
+#include "rhi/sync.h"
+
+#include <array>
 #include <memory>
-#include <string>
 
-namespace graphyne::platform
-{
-class Window;
-}
+namespace gn::rhi      { class Device; class Swapchain; }
+namespace gn::platform { class Window; }
 
-namespace graphyne::graphics
-{
+namespace gn::graphics {
 
-/**
- * @class Renderer
- * @brief Abstract base class for rendering backends
- */
-class Renderer
-{
+class Renderer {
 public:
-    /**
-     * @struct Config
-     * @brief Configuration options for the renderer
-     */
-    struct Config
-    {
-        std::string appName = "Graphyne Application";
-        uint32_t appVersion = 1;
-        bool enableValidation = true;
-        bool enableVSync = true;
+    static constexpr u32 kMaxFramesInFlight = 2;
+
+    struct Config {
+        bool vsync = true;
     };
 
-    /**
-     * @brief Constructor
-     * @param window Window to render to
-     * @param config Renderer configuration
-     */
-    Renderer(platform::Window& window, const Config& config = Config{});
+    Renderer() = default;
+    ~Renderer();
 
-    /**
-     * @brief Virtual destructor
-     */
-    virtual ~Renderer() = default;
-
-    // Disable copy and move
-    Renderer(const Renderer&) = delete;
+    Renderer(const Renderer&)            = delete;
     Renderer& operator=(const Renderer&) = delete;
-    Renderer(Renderer&&) = delete;
-    Renderer& operator=(Renderer&&) = delete;
+    Renderer(Renderer&&)                 = delete;
+    Renderer& operator=(Renderer&&)      = delete;
 
-    /**
-     * @brief Initialize the renderer
-     * @return True if initialization succeeded, false otherwise
-     */
-    virtual bool initialize() = 0;
+    Result<void> initialize(rhi::Device& device,
+                            rhi::Swapchain& swapchain,
+                            platform::Window& window,
+                            const Config& cfg = {});
 
-    /**
-     * @brief Shutdown the renderer
-     */
-    virtual void shutdown() = 0;
+    void shutdown();
 
-    /**
-     * @brief Begin a new frame
-     */
-    virtual void beginFrame() = 0;
+    /// Begin a new frame. Returns a Frame ready for the App to populate,
+    /// or nullptr if the swapchain needs recreation (e.g. minimized window).
+    Frame* begin_frame(f64 time, f32 delta);
 
-    /**
-     * @brief End the current frame and present it
-     */
-    virtual void endFrame() = 0;
+    /// Finish recording and submit the frame.
+    void end_frame();
 
-    /**
-     * @brief Wait for the device to be idle
-     */
-    virtual void waitIdle() = 0;
+    /// Notify the renderer that the window size changed. The next begin_frame
+    /// will recreate the swapchain.
+    void on_resize();
 
-    /**
-     * @brief Handle window resize events
-     * @param width New width in pixels
-     * @param height New height in pixels
-     */
-    virtual void onResize(int width, int height) = 0;
+    Color& clear_color() { return m_current_frame.clear_color; }
 
-    /**
-     * @brief Create a concrete renderer instance based on the selected backend
-     * @param window Window to render to
-     * @param config Renderer configuration
-     * @return Unique pointer to the created renderer
-     */
-    static std::unique_ptr<Renderer> create(platform::Window& window, const Config& config = Config{});
+private:
+    void   transition_image(VkCommandBuffer cmd, VkImage img,
+                            VkImageLayout old_layout, VkImageLayout new_layout,
+                            VkPipelineStageFlags2 src_stage, VkAccessFlags2 src_access,
+                            VkPipelineStageFlags2 dst_stage, VkAccessFlags2 dst_access);
+    Result<void> recreate_swapchain();
 
-protected:
-    platform::Window& m_window;
+    rhi::Device*       m_device    = nullptr;
+    rhi::Swapchain*    m_swapchain = nullptr;
+    platform::Window*  m_window    = nullptr;
+
+    rhi::CommandPool   m_command_pool;
+    std::array<rhi::FrameSync, kMaxFramesInFlight> m_sync;
+
     Config m_config;
+    u32    m_frame_index           = 0;
+    u32    m_acquired_image_index  = 0;
+    bool   m_needs_recreate        = false;
+    bool   m_frame_in_progress     = false;
+
+    Frame  m_current_frame;
 };
 
-} // namespace graphyne::graphics
+} // namespace gn::graphics

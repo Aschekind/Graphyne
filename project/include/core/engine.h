@@ -1,102 +1,89 @@
 /**
- * @file engine.h
- * @brief Main engine class for Graphyne
+ * @file core/engine.h
+ * @brief Engine — owns subsystems and runs the main loop.
+ *
+ * Typical usage:
+ *
+ *   gn::Engine::Config cfg;
+ *   cfg.app_name      = "My Game";
+ *   cfg.window_width  = 1280;
+ *   cfg.window_height = 720;
+ *
+ *   gn::Engine engine(cfg);
+ *   MyGame game;
+ *   return engine.run(game);
  */
 #pragma once
 
+#include "core/result.h"
+#include "core/types.h"
+
 #include <memory>
 #include <string>
-#include <vector>
 
-namespace graphyne {
+namespace gn {
 
-// Forward declarations
-namespace graphics {
-class Renderer;
-}
+class App;
 
-namespace platform {
-class Window;
-}
+namespace platform { class Platform; class Window; class Input; }
+namespace rhi      { class Device; class Swapchain; }
+namespace graphics { class Renderer; }
 
-/**
- * @class Engine
- * @brief Main engine class that manages the game loop and subsystems
- */
-class Engine
-{
+class Engine {
 public:
-    /**
-     * @struct Config
-     * @brief Configuration for initializing the engine
-     */
-    struct Config
-    {
-        std::string appName = "Graphyne Application";
-        uint32_t windowWidth = 1280;
-        uint32_t windowHeight = 720;
-        bool enableValidation = true;
-        bool enableVSync = true;
+    struct Config {
+        std::string app_name        = "Graphyne Application";
+        u32         window_width    = 1280;
+        u32         window_height   = 720;
+        bool        resizable       = true;
+        bool        vsync           = true;
+        bool        enable_validation = true;
+        // Path to a log file. Empty -> console only.
+        std::string log_file;
     };
 
-    /**
-     * @brief Constructor
-     * @param config Engine configuration
-     */
-    explicit Engine(const Config& config = Config{});
-
-    /**
-     * @brief Destructor
-     */
+    explicit Engine(Config config = {});
     ~Engine();
 
-    // Disable copy and move
-    Engine(const Engine&) = delete;
+    Engine(const Engine&)            = delete;
     Engine& operator=(const Engine&) = delete;
-    Engine(Engine&&) = delete;
-    Engine& operator=(Engine&&) = delete;
+    Engine(Engine&&)                 = delete;
+    Engine& operator=(Engine&&)      = delete;
 
-    /**
-     * @brief Initialize the engine and all subsystems
-     * @return True if initialization succeeded, false otherwise
-     */
-    bool initialize();
+    /// Initialize all subsystems. Safe to call exactly once.
+    Result<void> initialize();
 
-    /**
-     * @brief Shut down the engine and all subsystems
-     */
+    /// Tear down all subsystems. Safe to call multiple times.
     void shutdown();
 
-    /**
-     * @brief Run the main engine loop
-     * @return Exit code (0 for success)
-     */
-    int run();
+    /// Run the main loop driving the supplied App. Returns the application's
+    /// exit code (0 on a graceful exit).
+    int run(App& app);
 
-    /**
-     * @brief Check if the engine is running
-     * @return True if the engine is running, false otherwise
-     */
-    bool isRunning() const { return m_running; }
+    /// Ask the loop to terminate after the current frame.
+    void request_exit() { m_running = false; }
 
-    /**
-     * @brief Stop the engine
-     */
-    void stop() { m_running = false; }
+    bool initialized() const { return m_initialized; }
+    bool running()     const { return m_running; }
+
+    // Accessors for App / subsystem code that needs them.
+    platform::Window&  window();
+    platform::Input&   input();
+    graphics::Renderer& renderer();
+
+    const Config& config() const { return m_config; }
 
 private:
     Config m_config;
-    bool m_initialized = false;
-    bool m_running = false;
+    bool   m_initialized = false;
+    bool   m_running     = false;
 
-    // Core subsystems
-    std::unique_ptr<platform::Window> m_window;
-    std::unique_ptr<graphics::Renderer> m_renderer;
-
-    // Engine loop methods
-    void processEvents();
-    void update(float deltaTime);
-    void render();
+    std::unique_ptr<platform::Platform>  m_platform;
+    std::unique_ptr<platform::Window>    m_window;
+    std::unique_ptr<platform::Input>     m_input;
+    std::unique_ptr<rhi::Device>         m_device;
+    std::unique_ptr<rhi::Swapchain>      m_swapchain;
+    std::unique_ptr<graphics::Renderer>  m_renderer;
 };
 
-} // namespace graphyne
+} // namespace gn

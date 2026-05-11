@@ -1,0 +1,24 @@
+{
+  "name": "graphyne",
+  "version-string": "0.2.0",
+  "description": "Graphyne game engine",
+  "homepage": "https://github.com/Multyp/graphyne",
+  "dependencies": [
+    "vulkan",
+    "vulkan-headers",
+    "sdl2",
+    "spdlog",
+    "glm",
+    "fmt",
+    {
+      "name": "gtest",
+      "host": false
+    }
+  ],
+  "features": {
+    "tests": {
+      "description": "Build unit tests",
+      "dependencies": ["gtest"]
+    }
+  }
+}

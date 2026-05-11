@@ -1,23 +1,11 @@
-# Examples CMakeLists.txt
+# Examples
 
-# Add an executable for the simple window example
-add_executable(simple_window simple_window.cpp)
+function(graphyne_add_example name)
+    add_executable(${name} ${ARGN})
+    target_link_libraries(${name} PRIVATE graphyne::graphyne)
+    set_target_properties(${name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+endfunction()
 
-target_include_directories(simple_window
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/src  # This gives direct access to core/engine.h
-)
-
-# Link the example against the graphyne engine library
-target_link_libraries(simple_window
-    PRIVATE
-        graphyne
-)
-
-# Make sure the example depends on the graphyne library
-add_dependencies(simple_window graphyne)
-
-# Set output directory (this should inherit from parent, but explicitly set to be sure)
-set_target_properties(simple_window PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
+graphyne_add_example(simple_window simple_window.cpp)

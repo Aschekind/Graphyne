@@ -1,30 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 echo "===== Building Graphyne Engine ====="
 
-# Create build directory if it doesn't exist
-mkdir -p build
+BUILD_TYPE="${BUILD_TYPE:-Debug}"
+BUILD_DIR="${BUILD_DIR:-build}"
+COVERAGE="${COVERAGE:-OFF}"
 
-# Navigate to build directory
-cd build
+cmake -S . -B "${BUILD_DIR}" \
+    -G "${CMAKE_GENERATOR:-Ninja}" \
+    -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+    -DGRAPHYNE_BUILD_EXAMPLES=ON \
+    -DGRAPHYNE_BUILD_TESTS=ON \
+    -DGRAPHYNE_COVERAGE="${COVERAGE}"
 
-# Configure with CMake
-echo "Configuring project with CMake..."
-cmake -DCMAKE_BUILD_TYPE=Debug -DGRAPHYNE_BUILD_EXAMPLES=ON ..
+cmake --build "${BUILD_DIR}" --parallel
 
-# Build the project
-echo "Building project..."
-cmake --build . --config Debug
+echo "Running tests..."
+ctest --test-dir "${BUILD_DIR}" --output-on-failure
 
-# Check if build was successful
-if [ $? -eq 0 ]; then
-    echo "Build completed successfully!"
-    echo "Executables can be found in: $(pwd)/bin"
-else
-    echo "Build failed with error code: $?"
+if [[ "${COVERAGE}" == "ON" ]]; then
+    cmake --build "${BUILD_DIR}" --target coverage
+    echo "Coverage report: ${BUILD_DIR}/coverage/html/index.html"
 fi
 
-# Return to the original directory
-cd ..
-
 echo "===== Build process complete ====="
+echo "Binaries: ${BUILD_DIR}/bin"
