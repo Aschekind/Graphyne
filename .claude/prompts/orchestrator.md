@@ -15,7 +15,7 @@ context stays free for planning and judgment across a long project.
 - Graphyne is a lightweight C++20 game engine for learning and experimenting (ECS, rendering,
   multithreading), built with CMake and vcpkg. `AGENTS.md` has the stack, layout, commands and rules;
   `CLAUDE.md` routes work to the agents in `.claude/agents/`; plans are in `docs/ROADMAP.md`, decisions in
-  `docs/adr/`. Stack: SDL3 + raw Vulkan 1.3 (ADR 0003); the SDL3 migration is on the roadmap.
+  `docs/adr/`. Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 - Windows machine. Never run `python` (a hook blocks it). Give every long run a hard time limit and stop
   every process you start; never kill processes by name.
 - No trace of an assistant in git or on GitHub: no `Co-Authored-By` trailer, no "Generated with" line

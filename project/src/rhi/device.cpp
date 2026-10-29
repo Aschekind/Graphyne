@@ -3,7 +3,7 @@
 #include "platform/window.h"
 #include "utils/logger.h"
 
-#include <SDL2/SDL_vulkan.h>
+#include <SDL3/SDL_vulkan.h>
 
 #include <cstring>
 #include <set>
@@ -79,7 +79,7 @@ Result<void> Device::initialize(platform::Window& window, const Config& cfg) {
     }
 
     // Surface (SDL handles the OS-specific bits).
-    if (!SDL_Vulkan_CreateSurface(window.native(), m_instance, &m_surface)) {
+    if (!SDL_Vulkan_CreateSurface(window.native(), m_instance, nullptr, &m_surface)) {
         return Err{Error{std::string("SDL_Vulkan_CreateSurface failed: ") + SDL_GetError()}};
     }
 

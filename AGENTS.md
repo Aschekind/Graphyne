@@ -11,8 +11,7 @@ It is early-stage. Keep it lightweight: prefer small, understandable code over g
 
 **Stack (ADR 0003): SDL3 for windowing and input, raw Vulkan 1.3 for graphics.** Graphyne owns its Vulkan
 code on purpose (learning value); don't add rendering abstractions or engines. Approved helpers, added
-when the work needs them: VMA and glslang's tools. The code is still on SDL2 until the SDL3 migration on
-the roadmap lands; don't add new SDL2-specific code meanwhile.
+when the work needs them: VMA and glslang's tools.
 
 Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per decision).
 
@@ -21,8 +20,8 @@ Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per
 - C++20 (no compiler extensions), CMake ≥ 3.21, vcpkg manifest mode (`vcpkg.json`) pinned by
   `builtin-baseline` (vcpkg release 2026.10.16). Local vcpkg clones must contain that commit; CI uses the
   same commit. Changing the baseline is a dependency change: ask the owner.
-- Dependencies (all from vcpkg, on every platform): Vulkan (headers + loader), SDL2 (SDL3 after the
-  migration), spdlog, fmt (through spdlog), glm, GoogleTest.
+- Dependencies (all from vcpkg, on every platform): Vulkan (headers + loader), SDL3 (features `vulkan`;
+  `wayland` and `x11` on Linux), spdlog, fmt (through spdlog), glm, GoogleTest.
 - Platforms: Windows (MSVC, Visual Studio 2022) and Linux (GCC) are first-class; macOS best effort.
 - CI: `.github/workflows/ci.yml`. clang-format first; then Linux (GCC, ubuntu-24.04, tests + coverage) and
   Windows (MSVC, tests; Debug on PRs, Debug + Release on push to `develop`/`main`). Docs-only and

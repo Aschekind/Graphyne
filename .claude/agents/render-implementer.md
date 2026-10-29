@@ -12,7 +12,7 @@ You implement one scoped change in Graphyne's platform and rendering code, from 
 - Your area: `platform/`, `rhi/`, `graphics/` under `project/include` and `project/src`, and `examples/`.
   Touch `CMakeLists.txt` and `tests/CMakeLists.txt` only to list new files (`add-source-file` skill). Don't touch engine areas,
   CI or vcpkg.
-- Stack per ADR 0003: SDL3 (once migrated) and raw Vulkan 1.3; VMA and glslang tools are approved. Don't add other graphics or windowing dependencies or widen
+- Stack per ADR 0003: SDL3 and raw Vulkan 1.3; VMA and glslang tools are approved. Don't add other graphics or windowing dependencies or widen
   the SDL/Vulkan surface beyond what the brief asks. Keep SDL and Vulkan types out of headers that engine
   code includes.
 - Vulkan: check every `VkResult`, destroy what you create in reverse order, keep validation layers usable

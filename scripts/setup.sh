@@ -81,10 +81,11 @@ install_system_packages() {
         ubuntu|debian)
             say "Installing apt packages"
             sudo apt-get update
+            # libsdl3-dev needs Ubuntu 25.04+ / Debian 13+; on older releases use --vcpkg.
             sudo apt-get install -y --no-install-recommends \
                 build-essential cmake ninja-build git pkg-config \
                 libvulkan-dev vulkan-validationlayers spirv-tools glslang-tools \
-                libsdl2-dev \
+                libsdl3-dev \
                 libfmt-dev libspdlog-dev libglm-dev \
                 libgtest-dev googletest \
                 lcov gcovr clang-format clang-tidy
@@ -94,7 +95,7 @@ install_system_packages() {
             sudo dnf install -y \
                 gcc gcc-c++ make cmake ninja-build git pkgconf \
                 vulkan-loader-devel vulkan-validation-layers spirv-tools glslang \
-                SDL2-devel \
+                SDL3-devel \
                 fmt-devel spdlog-devel glm-devel \
                 gtest-devel \
                 lcov gcovr clang-tools-extra
@@ -104,7 +105,7 @@ install_system_packages() {
             sudo pacman -S --needed --noconfirm \
                 base-devel cmake ninja git pkgconf \
                 vulkan-headers vulkan-validation-layers spirv-tools glslang \
-                sdl2 \
+                sdl3 \
                 fmt spdlog glm \
                 gtest \
                 lcov gcovr clang
@@ -118,7 +119,7 @@ install_system_packages() {
             say "Installing brew packages"
             brew update
             brew install cmake ninja git pkg-config \
-                         sdl2 fmt spdlog glm googletest lcov llvm
+                         sdl3 fmt spdlog glm googletest lcov llvm
             warn "macOS: install the Vulkan SDK manually from"
             warn "  https://vulkan.lunarg.com/sdk/home#mac"
             warn "and run 'source ~/VulkanSDK/<version>/setup-env.sh' before building."

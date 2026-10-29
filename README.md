@@ -26,7 +26,7 @@ multithreaded systems, and modular engine design.
 
 Requirements: CMake ≥ 3.21 (the presets file is version 3), a C++20 compiler, and vcpkg with
 `VCPKG_ROOT` set (the presets set no toolchain file; the top-level `CMakeLists.txt` picks up vcpkg's from
-`VCPKG_ROOT`). Dependencies (Vulkan headers and loader, SDL2, fmt,
+`VCPKG_ROOT`). Dependencies (Vulkan headers and loader, SDL3, fmt,
 spdlog, glm, GoogleTest) come from vcpkg at the baseline pinned in `vcpkg.json`; on Windows use the
 `msvc` preset (`cmake --preset msvc`). The vcpkg clone must contain the baseline commit (`git fetch`).
 

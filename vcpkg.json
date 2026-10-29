@@ -8,9 +8,10 @@
     "vulkan",
     "vulkan-headers",
     {
-      "name": "sdl2",
+      "name": "sdl3",
       "default-features": false,
       "features": [
+        "vulkan",
         { "name": "wayland", "platform": "linux" },
         { "name": "x11", "platform": "linux" }
       ]
