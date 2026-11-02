@@ -183,7 +183,7 @@ void Renderer::end_frame() {
     ri.pColorAttachments    = &color;
 
     vkCmdBeginRendering(cmd, &ri);
-    // TODO: future SpriteRenderer::flush(cmd) goes here.
+    if (m_pass_callback) m_pass_callback(m_current_frame);
     vkCmdEndRendering(cmd);
 
     // COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR

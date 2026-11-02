@@ -6,6 +6,11 @@
 
 namespace gn::platform {
 
+std::string base_path() {
+    const char* path = SDL_GetBasePath(); // owned by SDL
+    return path ? path : "";
+}
+
 Platform::~Platform() {
     shutdown();
 }
