@@ -16,6 +16,7 @@
 #include "rhi/sync.h"
 
 #include <array>
+#include <functional>
 #include <memory>
 
 namespace gn::rhi {
@@ -65,6 +66,10 @@ public:
 
     Color& clear_color() { return m_current_frame.clear_color; }
 
+    /// Called every frame inside the dynamic-rendering pass (after the clear) to record draws.
+    /// Placeholder until the sprite renderer exists; pass an empty function to remove it.
+    void set_pass_callback(std::function<void(Frame&)> fn) { m_pass_callback = std::move(fn); }
+
 private:
     void         transition_image(VkCommandBuffer       cmd,
                                   VkImage               img,
@@ -89,7 +94,8 @@ private:
     bool   m_needs_recreate       = false;
     bool   m_frame_in_progress    = false;
 
-    Frame m_current_frame;
+    Frame                       m_current_frame;
+    std::function<void(Frame&)> m_pass_callback;
 };
 
 } // namespace gn::graphics

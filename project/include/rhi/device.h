@@ -11,10 +11,13 @@
 #include "core/result.h"
 #include "core/types.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
+
+struct VmaAllocator_T; // opaque VMA handle; keeps vk_mem_alloc.h out of public headers
 
 namespace gn::platform {
 class Window;
@@ -55,6 +58,10 @@ public:
     /// Block until all GPU work on this device has completed.
     void wait_idle() const;
 
+    /// Record into a transient command buffer, submit it on the graphics queue and wait for it (fence).
+    /// Synchronous and single-threaded: meant for load-time uploads, not for per-frame work.
+    Result<void> submit_one_shot(const std::function<void(VkCommandBuffer)>& record);
+
     VkInstance         instance() const { return m_instance; }
     VkPhysicalDevice   physical_device() const { return m_physical_device; }
     VkDevice           logical_device() const { return m_device; }
@@ -63,12 +70,15 @@ public:
     VkQueue            present_queue() const { return m_present_queue; }
     QueueFamilyIndices queue_families() const { return m_queue_families; }
     bool               validation_enabled() const { return m_validation; }
+    VmaAllocator_T*    allocator() const { return m_allocator; }
 
 private:
     Result<void>       create_instance(const Config& cfg, const std::vector<const char*>& window_exts);
     Result<void>       setup_debug_messenger();
     Result<void>       pick_physical_device();
     Result<void>       create_logical_device();
+    Result<void>       create_allocator();
+    Result<void>       create_upload_objects();
     bool               is_device_suitable(VkPhysicalDevice device) const;
     QueueFamilyIndices find_queue_families(VkPhysicalDevice device) const;
     bool               check_device_extensions(VkPhysicalDevice device) const;
@@ -81,6 +91,9 @@ private:
     VkQueue                  m_graphics_queue  = VK_NULL_HANDLE;
     VkQueue                  m_present_queue   = VK_NULL_HANDLE;
     QueueFamilyIndices       m_queue_families  = {};
+    VmaAllocator_T*          m_allocator       = nullptr;
+    VkCommandPool            m_upload_pool     = VK_NULL_HANDLE;
+    VkFence                  m_upload_fence    = VK_NULL_HANDLE;
     bool                     m_validation      = false;
 
     // Required device extensions (swapchain + anything we need for VK 1.3 dyn rendering).

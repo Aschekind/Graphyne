@@ -80,6 +80,8 @@ public:
     platform::Window&   window();
     platform::Input&    input();
     graphics::Renderer& renderer();
+    rhi::Device&        device();
+    rhi::Swapchain&     swapchain();
 
     const Config& config() const { return m_config; }
 

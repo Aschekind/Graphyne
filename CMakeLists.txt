@@ -140,8 +140,13 @@ set(GRAPHYNE_SOURCES
     project/src/rhi/swapchain.cpp
     project/src/rhi/command.cpp
     project/src/rhi/sync.cpp
+    project/src/rhi/buffer.cpp
+    project/src/rhi/image.cpp
+    project/src/rhi/shader.cpp
+    project/src/rhi/pipeline.cpp
 
     project/src/graphics/renderer.cpp
+    project/src/graphics/checkerboard.cpp
 
     project/src/utils/logger.cpp
 )

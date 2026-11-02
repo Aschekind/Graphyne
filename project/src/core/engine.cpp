@@ -147,6 +147,12 @@ platform::Window& Engine::window() {
 platform::Input& Engine::input() {
     return *m_input;
 }
+rhi::Device& Engine::device() {
+    return *m_device;
+}
+rhi::Swapchain& Engine::swapchain() {
+    return *m_swapchain;
+}
 graphics::Renderer& Engine::renderer() {
     return *m_renderer;
 }

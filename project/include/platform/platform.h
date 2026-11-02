@@ -9,7 +9,12 @@
 
 #include "core/result.h"
 
+#include <string>
+
 namespace gn::platform {
+
+/// Directory of the running executable, with a trailing separator ("" if unknown).
+std::string base_path();
 
 class Platform {
 public:

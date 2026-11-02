@@ -11,7 +11,12 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 1. **Textures and sprites** on SDL3 + Vulkan, with VMA and glslang tools (ADR 0003). Rebuild from
    `origin/feat/texture-rendering` rather than rebasing it (8 conflicting files, SDL2-based); reuse its
    camera, sprite data and image-decoding parts. Image decoding needs `stb` or similar: ask the owner and
-   write an ADR. Batch sprites instead of one draw per sprite.
+   write an ADR. Batch sprites instead of one draw per sprite. Three PRs:
+   - [x] Build: VMA, stb (ADR 0004), glslang tools, `graphyne_add_shaders`.
+   - [x] RHI building blocks: VMA allocator, buffers, images, samplers, shaders, pipeline builder,
+     descriptors; `simple_window` samples a CPU checkerboard. `Renderer::set_pass_callback` is a
+     placeholder until the sprite flush replaces it.
+   - [ ] Batched sprite renderer, `Camera2D`, image loading, example.
 
 ## Next
 

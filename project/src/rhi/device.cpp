@@ -3,6 +3,9 @@
 #include "platform/window.h"
 #include "utils/logger.h"
 
+#define VMA_IMPLEMENTATION
+#include "rhi/vma.h"
+
 #include <SDL3/SDL_vulkan.h>
 
 #include <cstring>
@@ -87,12 +90,32 @@ Result<void> Device::initialize(platform::Window& window, const Config& cfg) {
     if (!r3) return r3;
     auto r4 = create_logical_device();
     if (!r4) return r4;
+    auto r5 = create_allocator();
+    if (!r5) {
+        shutdown();
+        return r5;
+    }
+    auto r6 = create_upload_objects();
+    if (!r6) {
+        shutdown();
+        return r6;
+    }
 
     GN_INFO("Vulkan device ready (graphics={}, present={})", m_queue_families.graphics, m_queue_families.present);
     return Ok();
 }
 
 void Device::shutdown() {
+    if (m_device != VK_NULL_HANDLE) {
+        if (m_upload_fence != VK_NULL_HANDLE) vkDestroyFence(m_device, m_upload_fence, nullptr);
+        if (m_upload_pool != VK_NULL_HANDLE) vkDestroyCommandPool(m_device, m_upload_pool, nullptr);
+        m_upload_fence = VK_NULL_HANDLE;
+        m_upload_pool  = VK_NULL_HANDLE;
+    }
+    if (m_allocator) {
+        vmaDestroyAllocator(m_allocator);
+        m_allocator = nullptr;
+    }
     if (m_device != VK_NULL_HANDLE) {
         vkDestroyDevice(m_device, nullptr);
         m_device = VK_NULL_HANDLE;
@@ -289,6 +312,85 @@ Result<void> Device::create_logical_device() {
 
     vkGetDeviceQueue(m_device, m_queue_families.graphics, 0, &m_graphics_queue);
     vkGetDeviceQueue(m_device, m_queue_families.present, 0, &m_present_queue);
+    return Ok();
+}
+
+Result<void> Device::create_allocator() {
+    VmaAllocatorCreateInfo ci{};
+    ci.vulkanApiVersion = VK_API_VERSION_1_3;
+    ci.instance         = m_instance;
+    ci.physicalDevice   = m_physical_device;
+    ci.device           = m_device;
+    VkResult res        = vmaCreateAllocator(&ci, &m_allocator);
+    if (res != VK_SUCCESS) {
+        m_allocator = nullptr;
+        return Err{Error{"vmaCreateAllocator failed (code " + std::to_string(res) + ")"}};
+    }
+    return Ok();
+}
+
+// Uploads share the graphics queue with the renderer and use one pool/fence: single-threaded, load-time only.
+Result<void> Device::create_upload_objects() {
+    VkCommandPoolCreateInfo pi{};
+    pi.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pi.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    pi.queueFamilyIndex = m_queue_families.graphics;
+    if (vkCreateCommandPool(m_device, &pi, nullptr, &m_upload_pool) != VK_SUCCESS) {
+        m_upload_pool = VK_NULL_HANDLE;
+        return Err{Error{"vkCreateCommandPool (upload) failed"}};
+    }
+    VkFenceCreateInfo fi{};
+    fi.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    if (vkCreateFence(m_device, &fi, nullptr, &m_upload_fence) != VK_SUCCESS) {
+        m_upload_fence = VK_NULL_HANDLE;
+        return Err{Error{"vkCreateFence (upload) failed"}};
+    }
+    return Ok();
+}
+
+Result<void> Device::submit_one_shot(const std::function<void(VkCommandBuffer)>& record) {
+    VkCommandBufferAllocateInfo ai{};
+    ai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.commandPool        = m_upload_pool;
+    ai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    ai.commandBufferCount = 1;
+    VkCommandBuffer cmd   = VK_NULL_HANDLE;
+    if (vkAllocateCommandBuffers(m_device, &ai, &cmd) != VK_SUCCESS) {
+        return Err{Error{"vkAllocateCommandBuffers (upload) failed"}};
+    }
+
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    VkCommandBufferSubmitInfo cbi{};
+    cbi.sType         = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+    cbi.commandBuffer = cmd;
+    VkSubmitInfo2 submit{};
+    submit.sType                  = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    submit.commandBufferInfoCount = 1;
+    submit.pCommandBufferInfos    = &cbi;
+
+    const char* failed = nullptr;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) {
+        failed = "vkBeginCommandBuffer";
+    } else {
+        record(cmd);
+        if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
+            failed = "vkEndCommandBuffer";
+        } else if (vkQueueSubmit2(m_graphics_queue, 1, &submit, m_upload_fence) != VK_SUCCESS) {
+            failed = "vkQueueSubmit2";
+        } else {
+            if (vkWaitForFences(m_device, 1, &m_upload_fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
+                // The GPU may still use cmd and the fence: only continue once the device is idle, else leak them.
+                if (vkDeviceWaitIdle(m_device) != VK_SUCCESS) return Err{Error{"vkWaitForFences (upload) failed"}};
+                failed = "vkWaitForFences";
+            }
+            if (vkResetFences(m_device, 1, &m_upload_fence) != VK_SUCCESS && !failed) failed = "vkResetFences";
+        }
+    }
+    vkFreeCommandBuffers(m_device, m_upload_pool, 1, &cmd);
+    if (failed) return Err{Error{std::string(failed) + " (upload) failed"}};
     return Ok();
 }
 
