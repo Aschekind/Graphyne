@@ -207,7 +207,7 @@ void Renderer::end_frame() {
 
     VkSemaphoreSubmitInfo signal{};
     signal.sType     = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-    signal.semaphore = sync.render_finished;
+    signal.semaphore = m_swapchain->render_finished(m_acquired_image_index);
     signal.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
 
     VkCommandBufferSubmitInfo cbi{};
@@ -225,7 +225,7 @@ void Renderer::end_frame() {
 
     vkQueueSubmit2(m_device->graphics_queue(), 1, &submit, sync.in_flight);
 
-    if (!m_swapchain->present(m_device->present_queue(), sync.render_finished, m_acquired_image_index)) {
+    if (!m_swapchain->present(m_device->present_queue(), m_acquired_image_index)) {
         m_needs_recreate = true;
     }
 

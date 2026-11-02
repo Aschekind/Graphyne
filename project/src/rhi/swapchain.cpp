@@ -129,6 +129,15 @@ Result<void> Swapchain::initialize(Device& device, Extent2D desired_extent, bool
         }
     }
 
+    m_render_finished.resize(actual_count);
+    for (auto& s : m_render_finished) {
+        VkSemaphoreCreateInfo si{};
+        si.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        if (vkCreateSemaphore(dev, &si, nullptr, &s) != VK_SUCCESS) {
+            return Err{Error{"vkCreateSemaphore failed"}};
+        }
+    }
+
     m_format = fmt.format;
     m_extent = Extent2D{ext.width, ext.height};
     GN_INFO("Swapchain created: {}x{} ({} images)", m_extent.width, m_extent.height, actual_count);
@@ -142,8 +151,13 @@ void Swapchain::shutdown() {
         m_swapchain = VK_NULL_HANDLE;
         m_views.clear();
         m_images.clear();
+        m_render_finished.clear();
         return;
     }
+    for (auto s : m_render_finished) {
+        if (s != VK_NULL_HANDLE) vkDestroySemaphore(dev, s, nullptr);
+    }
+    m_render_finished.clear();
     for (auto v : m_views) {
         if (v != VK_NULL_HANDLE) vkDestroyImageView(dev, v, nullptr);
     }
@@ -180,13 +194,13 @@ bool Swapchain::acquire_next_image(VkSemaphore signal, u32& out_index, bool& out
     return res == VK_SUCCESS;
 }
 
-bool Swapchain::present(VkQueue queue, VkSemaphore wait, u32 image_index) {
+bool Swapchain::present(VkQueue queue, u32 image_index) {
     if (m_swapchain == VK_NULL_HANDLE) return false;
 
     VkPresentInfoKHR info{};
     info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    info.waitSemaphoreCount = wait != VK_NULL_HANDLE ? 1u : 0u;
-    info.pWaitSemaphores    = wait != VK_NULL_HANDLE ? &wait : nullptr;
+    info.waitSemaphoreCount = 1;
+    info.pWaitSemaphores    = &m_render_finished[image_index];
     info.swapchainCount     = 1;
     info.pSwapchains        = &m_swapchain;
     info.pImageIndices      = &image_index;

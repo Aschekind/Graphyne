@@ -8,18 +8,14 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 
 ## Now
 
-1. **Fix render-finished semaphore reuse.** `simple_window` logs VUID-vkQueueSubmit2-semaphore-03868: the
-   renderer signals a per-frame-in-flight semaphore that presentation of another swapchain image may still
-   hold. Use one render-finished semaphore per swapchain image (recreated with the swapchain). Done when a
-   run shows no validation errors.
-
-## Next
-
-2. **Textures and sprites** on SDL3 + Vulkan, with VMA and glslang tools (ADR 0003). Rebuild from
+1. **Textures and sprites** on SDL3 + Vulkan, with VMA and glslang tools (ADR 0003). Rebuild from
    `origin/feat/texture-rendering` rather than rebasing it (8 conflicting files, SDL2-based); reuse its
    camera, sprite data and image-decoding parts. Image decoding needs `stb` or similar: ask the owner and
    write an ADR. Batch sprites instead of one draw per sprite.
-3. **ECS and scenes**: the main experiment. Pure C++, fully unit-tested, independent of rendering.
+
+## Next
+
+2. **ECS and scenes**: the main experiment. Pure C++, fully unit-tested, independent of rendering.
 
 ## Backlog
 
@@ -52,3 +48,5 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 - 2026-10-29: stack review. SDL3 for windowing, raw Vulkan 1.3 kept, VMA and glslang tools approved
   (ADR 0003).
 - 2026-10-29: SDL2 → SDL3 (ADR 0003). Swapchain size and resize events now in pixels (HiDPI).
+- 2026-11-02: one render-finished semaphore per swapchain image; `simple_window` runs without validation
+  errors.

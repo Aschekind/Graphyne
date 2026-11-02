@@ -14,7 +14,6 @@ bool create_frame_sync(Device& device, FrameSync& out) {
 
     VkDevice dev = device.logical_device();
     if (vkCreateSemaphore(dev, &si, nullptr, &out.image_available) != VK_SUCCESS) return false;
-    if (vkCreateSemaphore(dev, &si, nullptr, &out.render_finished) != VK_SUCCESS) return false;
     if (vkCreateFence(dev, &fi, nullptr, &out.in_flight) != VK_SUCCESS) return false;
     return true;
 }
@@ -22,7 +21,6 @@ bool create_frame_sync(Device& device, FrameSync& out) {
 void destroy_frame_sync(Device& device, FrameSync& sync) {
     VkDevice dev = device.logical_device();
     if (sync.image_available != VK_NULL_HANDLE) vkDestroySemaphore(dev, sync.image_available, nullptr);
-    if (sync.render_finished != VK_NULL_HANDLE) vkDestroySemaphore(dev, sync.render_finished, nullptr);
     if (sync.in_flight != VK_NULL_HANDLE) vkDestroyFence(dev, sync.in_flight, nullptr);
     sync = {};
 }
