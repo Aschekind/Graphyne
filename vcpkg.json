@@ -18,6 +18,14 @@
     },
     "spdlog",
     "glm",
+    "vulkan-memory-allocator",
+    "stb",
+    {
+      "name": "glslang",
+      "host": true,
+      "default-features": false,
+      "features": ["tools"]
+    },
     "fmt",
     {
       "name": "gtest",

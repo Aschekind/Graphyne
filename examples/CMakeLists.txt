@@ -9,3 +9,4 @@ function(graphyne_add_example name)
 endfunction()
 
 graphyne_add_example(simple_window simple_window.cpp)
+graphyne_add_shaders(simple_window shaders/fullscreen.vert shaders/solid.frag)
