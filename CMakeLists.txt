@@ -49,6 +49,7 @@ option(GRAPHYNE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors"   OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GraphyneUtils)
 include(GraphyneCoverage)
+include(GraphyneShaders)
 
 # ---------------------------------------------------------------------------
 # Compiler flags
@@ -117,6 +118,8 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 # ---------------------------------------------------------------------------
 # Library target
@@ -169,6 +172,9 @@ target_link_libraries(graphyne
         glm::glm
         fmt::fmt
 )
+
+target_link_libraries(graphyne PRIVATE GPUOpen::VulkanMemoryAllocator)
+target_include_directories(graphyne PRIVATE ${Stb_INCLUDE_DIR})
 
 target_compile_features(graphyne PUBLIC cxx_std_20)
 

@@ -8,6 +8,7 @@ order, never renumbered. A superseded record stays, with its status changed to `
 | [0001](0001-git-workflow.md) | Branches off `develop`, PRs, owner squash-merges | Accepted |
 | [0002](0002-style-configs-follow-the-code.md) | Style configs follow the existing code | Accepted |
 | [0003](0003-sdl3-and-raw-vulkan.md) | SDL3 for windowing, raw Vulkan for graphics | Accepted |
+| [0004](0004-stb-image-for-decoding.md) | stb_image for image decoding | Accepted |
 
 ## Template
 

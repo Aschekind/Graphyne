@@ -21,7 +21,8 @@ Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per
   `builtin-baseline` (vcpkg release 2026.10.16). Local vcpkg clones must contain that commit; CI uses the
   same commit. Changing the baseline is a dependency change: ask the owner.
 - Dependencies (all from vcpkg, on every platform): Vulkan (headers + loader), SDL3 (features `vulkan`;
-  `wayland` and `x11` on Linux), spdlog, fmt (through spdlog), glm, GoogleTest.
+  `wayland` and `x11` on Linux), VulkanMemoryAllocator, stb (`stb_image` only, ADR 0004), glslang tools
+  (host, compiles shaders), spdlog, fmt (through spdlog), glm, GoogleTest.
 - Platforms: Windows (MSVC, Visual Studio 2022) and Linux (GCC) are first-class; macOS best effort.
 - CI: `.github/workflows/ci.yml`. clang-format first; then Linux (GCC, ubuntu-24.04, tests + coverage) and
   Windows (MSVC, tests; Debug on PRs, Debug + Release on push to `develop`/`main`). Docs-only and
@@ -38,7 +39,8 @@ Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per
 | `project/include/<area>/`, `project/src/<area>/` | The `graphyne` static library (`graphyne::graphyne`). Areas: `core` (app, engine, clock, handle, slot_map, result, types, version), `memory` (arena, pool), `utils` (logger, assert), `platform` (SDL window, input, events), `rhi` (Vulkan device, swapchain, command, sync), `graphics` (renderer, frame, color). |
 | `tests/<area>/test_*.cpp` | GoogleTest unit tests, one executable `graphyne_tests`, listed in `tests/CMakeLists.txt`. |
 | `examples/` | `simple_window` example. |
-| `cmake/` | Coverage helpers, package config template. |
+| `shaders/` | GLSL sources, compiled to SPIR-V at build time by `graphyne_add_shaders` (`cmake/GraphyneShaders.cmake`) into `bin/[<Config>/]shaders/`. |
+| `cmake/` | Coverage and shader helpers, package config template. |
 | `scripts/` | `setup.sh` / `setup.ps1`: install prerequisites. |
 | `docs/` | `ROADMAP.md`, `adr/`. |
 | `.claude/` | Agents, hooks, skills, the orchestrator prompt. |
