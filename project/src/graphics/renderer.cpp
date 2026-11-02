@@ -9,6 +9,9 @@
 
 namespace gn::graphics {
 
+// SpriteRenderer keeps one vertex buffer per frame in flight and indexes it with the renderer's frame index.
+static_assert(SpriteRenderer::kFramesInFlight == Renderer::kMaxFramesInFlight);
+
 Renderer::~Renderer() {
     shutdown();
 }
@@ -35,6 +38,9 @@ Result<void> Renderer::initialize(rhi::Device&      device,
         }
     }
 
+    if (auto r = m_textures.initialize(device); !r) return r;
+    if (auto r = m_sprite_renderer.initialize(device, swapchain.image_format(), m_textures); !r) return r;
+
     GN_INFO("Renderer initialized ({} frames in flight)", kMaxFramesInFlight);
     return Ok();
 }
@@ -42,6 +48,8 @@ Result<void> Renderer::initialize(rhi::Device&      device,
 void Renderer::shutdown() {
     if (m_device) {
         m_device->wait_idle();
+        m_sprite_renderer.shutdown();
+        m_textures.shutdown();
         for (auto& s : m_sync) {
             rhi::destroy_frame_sync(*m_device, s);
         }
@@ -141,6 +149,8 @@ Frame* Renderer::begin_frame(f64 time, f32 delta) {
                      VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
                      VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
+    m_sprites.clear();
+    m_camera.viewport             = m_swapchain->extent();
     m_current_frame.frame_index   = m_frame_index;
     m_current_frame.image_index   = m_acquired_image_index;
     m_current_frame.time          = time;
@@ -183,7 +193,8 @@ void Renderer::end_frame() {
     ri.pColorAttachments    = &color;
 
     vkCmdBeginRendering(cmd, &ri);
-    if (m_pass_callback) m_pass_callback(m_current_frame);
+    m_sprites.finish();
+    m_sprite_renderer.record(cmd, m_frame_index, m_current_frame.target_extent, m_camera.view_projection(), m_sprites);
     vkCmdEndRendering(cmd);
 
     // COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR

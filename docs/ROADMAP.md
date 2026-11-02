@@ -8,21 +8,22 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 
 ## Now
 
-1. **Textures and sprites** on SDL3 + Vulkan, with VMA and glslang tools (ADR 0003). Rebuild from
-   `origin/feat/texture-rendering` rather than rebasing it (8 conflicting files, SDL2-based); reuse its
-   camera, sprite data and image-decoding parts. Image decoding needs `stb` or similar: ask the owner and
-   write an ADR. Batch sprites instead of one draw per sprite. Three PRs:
-   - [x] Build: VMA, stb (ADR 0004), glslang tools, `graphyne_add_shaders`.
-   - [x] RHI building blocks: VMA allocator, buffers, images, samplers, shaders, pipeline builder,
-     descriptors; `simple_window` samples a CPU checkerboard. `Renderer::set_pass_callback` is a
-     placeholder until the sprite flush replaces it.
-   - [ ] Batched sprite renderer, `Camera2D`, image loading, example.
+1. **ECS and scenes**: the main experiment. Pure C++, fully unit-tested, independent of rendering.
+   Design first (archetypes vs sparse sets), with the owner, before code.
 
 ## Next
 
-2. **ECS and scenes**: the main experiment. Pure C++, fully unit-tested, independent of rendering.
+- Nothing scheduled; pick from the backlog with the owner.
 
 ## Backlog
+
+- `graphics::Frame` still exposes Vulkan handles to `App::on_render`; hide them behind Graphyne types.
+- Shaders: `graphyne_add_shaders` writes to `${CMAKE_BINARY_DIR}/bin`, which is the parent's tree when
+  Graphyne is used through `add_subdirectory`; make the output dir follow the consuming executables, and
+  make the runtime shader directory configurable.
+- `SpriteBatch::finish` allocates scratch vectors on every layer sort; reuse members.
+- `TextureManager::load` caches by the raw path string (`a.png` and `./a.png` decode twice).
+- `SpriteRenderer` bakes the swapchain format at init; rebuild the pipeline if a recreate changes it.
 
 - Remove the tombstone files (`core/memory.h`, `graphics/vulkan_renderer.h`, their comment-only,
   uncompiled `.cpp`); the headers are still installed.
@@ -55,3 +56,6 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 - 2026-10-29: SDL2 → SDL3 (ADR 0003). Swapchain size and resize events now in pixels (HiDPI).
 - 2026-11-02: one render-finished semaphore per swapchain image; `simple_window` runs without validation
   errors.
+- 2026-11-02: textures and sprites (ADR 0003, 0004). VMA, glslang tools and shader compile step; RHI
+  buffers, images, samplers, shaders, pipeline builder, descriptors; `Camera2D`, stb_image loader,
+  `TextureManager`, batched `SpriteBatch` + `SpriteRenderer`; `simple_window` draws 400 sprites in 3 draws.

@@ -10,13 +10,16 @@
 
 #include "core/result.h"
 #include "core/types.h"
+#include "graphics/camera.h"
 #include "graphics/color.h"
 #include "graphics/frame.h"
+#include "graphics/sprite_batch.h"
+#include "graphics/sprite_renderer.h"
+#include "graphics/texture_manager.h"
 #include "rhi/command.h"
 #include "rhi/sync.h"
 
 #include <array>
-#include <functional>
 #include <memory>
 
 namespace gn::rhi {
@@ -66,9 +69,11 @@ public:
 
     Color& clear_color() { return m_current_frame.clear_color; }
 
-    /// Called every frame inside the dynamic-rendering pass (after the clear) to record draws.
-    /// Placeholder until the sprite renderer exists; pass an empty function to remove it.
-    void set_pass_callback(std::function<void(Frame&)> fn) { m_pass_callback = std::move(fn); }
+    /// Sprites queued here during on_render are drawn at end_frame, in submission order (see SpriteBatch).
+    SpriteBatch&    sprites() { return m_sprites; }
+    TextureManager& textures() { return m_textures; }
+    /// Its viewport is set to the swapchain extent at every begin_frame.
+    Camera2D& camera() { return m_camera; }
 
 private:
     void         transition_image(VkCommandBuffer       cmd,
@@ -94,8 +99,11 @@ private:
     bool   m_needs_recreate       = false;
     bool   m_frame_in_progress    = false;
 
-    Frame                       m_current_frame;
-    std::function<void(Frame&)> m_pass_callback;
+    Frame          m_current_frame;
+    TextureManager m_textures;
+    SpriteBatch    m_sprites;
+    SpriteRenderer m_sprite_renderer;
+    Camera2D       m_camera;
 };
 
 } // namespace gn::graphics

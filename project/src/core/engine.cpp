@@ -147,6 +147,15 @@ platform::Window& Engine::window() {
 platform::Input& Engine::input() {
     return *m_input;
 }
+graphics::SpriteBatch& Engine::sprites() {
+    return m_renderer->sprites();
+}
+graphics::TextureManager& Engine::textures() {
+    return m_renderer->textures();
+}
+graphics::Camera2D& Engine::camera() {
+    return m_renderer->camera();
+}
 rhi::Device& Engine::device() {
     return *m_device;
 }

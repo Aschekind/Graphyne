@@ -15,7 +15,10 @@ set(GRAPHYNE_TEST_SOURCES
     memory/test_arena.cpp
     memory/test_pool.cpp
 
+    graphics/test_camera.cpp
     graphics/test_checkerboard.cpp
+    graphics/test_image_loader.cpp
+    graphics/test_sprite_batch.cpp
 
     utils/test_logger.cpp
 )

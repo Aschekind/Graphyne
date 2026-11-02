@@ -17,9 +17,9 @@ multithreaded systems, and modular engine design.
 | Window + input (SDL) | ✅ Working                              |
 | Logging (spdlog)     | ✅ Working                              |
 | Memory (arena/pool)  | ✅ Working                              |
-| Vulkan RHI 1.3       | ✅ Clear-color frame                    |
+| Vulkan RHI 1.3       | ✅ Buffers, images, pipelines (VMA)     |
 | Coverage + CI        | ✅ Linux lcov, GitHub Actions           |
-| Textures + sprites   | 🚧 Next milestone                       |
+| Textures + sprites   | ✅ Batched sprites, Camera2D, stb_image |
 | ECS / scenes         | 🚧 Next milestone                       |
 
 ## Building
