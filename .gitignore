@@ -93,3 +93,6 @@ Testing/
 
 # vcpkg
 vcpkg_installed/
+
+# Runtime logs
+*.log

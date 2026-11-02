@@ -1,6 +1,8 @@
 # graphyne_add_shaders(<target> <glsl files...>)
 # Compiles each GLSL file (relative to the repo root, e.g. shaders/a.vert) to SPIR-V next to the executables:
 # bin/shaders/a.vert.spv (bin/<Config>/shaders on multi-config generators). Uses glslang from vcpkg.
+# Installed to share/graphyne/shaders; apps using an installed Graphyne copy them next to their executable.
+set(GRAPHYNE_SHADER_SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}/..")
 find_program(GRAPHYNE_GLSLANG NAMES glslang glslangValidator
     HINTS "${VCPKG_INSTALLED_DIR}/${VCPKG_HOST_TRIPLET}/tools/glslang"
     NO_DEFAULT_PATH)
@@ -23,12 +25,13 @@ function(graphyne_add_shaders target)
         add_custom_command(
             OUTPUT "${spv}"
             COMMAND ${CMAKE_COMMAND} -E make_directory "${out_dir}"
-            COMMAND ${GRAPHYNE_GLSLANG} --target-env vulkan1.3 -o "${spv}" "${CMAKE_SOURCE_DIR}/${src}"
-            DEPENDS "${CMAKE_SOURCE_DIR}/${src}"
+            COMMAND ${GRAPHYNE_GLSLANG} --target-env vulkan1.3 -o "${spv}" "${GRAPHYNE_SHADER_SOURCE_ROOT}/${src}"
+            DEPENDS "${GRAPHYNE_SHADER_SOURCE_ROOT}/${src}"
             COMMENT "Compiling shader ${name}"
             VERBATIM)
         list(APPEND outputs "${spv}")
     endforeach()
     add_custom_target(${target}_shaders DEPENDS ${outputs})
     add_dependencies(${target} ${target}_shaders)
+    install(FILES ${outputs} DESTINATION share/graphyne/shaders)
 endfunction()

@@ -36,7 +36,7 @@ Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per
 
 | Path | Contents |
 | --- | --- |
-| `project/include/<area>/`, `project/src/<area>/` | The `graphyne` static library (`graphyne::graphyne`). Areas: `core` (app, engine, clock, handle, slot_map, result, types, version), `memory` (arena, pool), `utils` (logger, assert), `platform` (SDL window, input, events), `rhi` (Vulkan device, swapchain, command, sync), `graphics` (renderer, frame, color). |
+| `project/include/<area>/`, `project/src/<area>/` | The `graphyne` static library (`graphyne::graphyne`). Areas: `core` (app, engine, clock, handle, slot_map, result, types, version), `memory` (arena, pool), `utils` (logger, assert), `platform` (SDL window, input, events), `rhi` (Vulkan device with VMA, swapchain, command, sync, buffer, image, sampler, shader, pipeline), `graphics` (renderer, frame, color, camera, image loader, texture manager, sprite batch and renderer). |
 | `tests/<area>/test_*.cpp` | GoogleTest unit tests, one executable `graphyne_tests`, listed in `tests/CMakeLists.txt`. |
 | `examples/` | `simple_window` example. |
 | `shaders/` | GLSL sources, compiled to SPIR-V at build time by `graphyne_add_shaders` (`cmake/GraphyneShaders.cmake`) into `bin/[<Config>/]shaders/`. |

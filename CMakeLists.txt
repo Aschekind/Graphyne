@@ -147,6 +147,10 @@ set(GRAPHYNE_SOURCES
 
     project/src/graphics/renderer.cpp
     project/src/graphics/checkerboard.cpp
+    project/src/graphics/image_loader.cpp
+    project/src/graphics/sprite_batch.cpp
+    project/src/graphics/sprite_renderer.cpp
+    project/src/graphics/texture_manager.cpp
 
     project/src/utils/logger.cpp
 )
@@ -182,6 +186,9 @@ target_link_libraries(graphyne PRIVATE GPUOpen::VulkanMemoryAllocator)
 target_include_directories(graphyne PRIVATE ${Stb_INCLUDE_DIR})
 
 target_compile_features(graphyne PUBLIC cxx_std_20)
+
+# The sprite renderer loads these from <executable dir>/shaders, so every build of the library produces them.
+graphyne_add_shaders(graphyne shaders/sprite.vert shaders/sprite.frag)
 
 # ---------------------------------------------------------------------------
 # Examples

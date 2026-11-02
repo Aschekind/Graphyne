@@ -36,7 +36,10 @@ class Swapchain;
 } // namespace rhi
 namespace graphics {
 class Renderer;
-}
+class SpriteBatch;
+class TextureManager;
+struct Camera2D;
+} // namespace graphics
 
 class Engine {
 public:
@@ -80,8 +83,12 @@ public:
     platform::Window&   window();
     platform::Input&    input();
     graphics::Renderer& renderer();
-    rhi::Device&        device();
-    rhi::Swapchain&     swapchain();
+    /// Queue sprites here in App::on_render; they are drawn when the frame ends.
+    graphics::SpriteBatch&    sprites();
+    graphics::TextureManager& textures();
+    graphics::Camera2D&       camera();
+    rhi::Device&              device();
+    rhi::Swapchain&           swapchain();
 
     const Config& config() const { return m_config; }
 
