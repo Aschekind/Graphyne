@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Build tools, plus the system headers the vcpkg sdl2 port (x11, wayland
+      # Build tools, plus the system headers the vcpkg sdl3 port (x11, wayland
       # features) and the vulkan loader need but cannot install.
       - name: Install system packages
         run: |

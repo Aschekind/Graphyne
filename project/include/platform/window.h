@@ -1,6 +1,6 @@
 /**
  * @file platform/window.h
- * @brief OS window backed by SDL2.
+ * @brief OS window backed by SDL3.
  */
 #pragma once
 
@@ -48,6 +48,7 @@ public:
     bool should_close() const { return m_should_close; }
     void set_should_close(bool v) { m_should_close = v; }
 
+    /// Size in pixels (swapchain extent) and resize events too; mouse coordinates are in window points.
     u32      width() const { return m_extent.width; }
     u32      height() const { return m_extent.height; }
     Extent2D extent() const { return m_extent; }

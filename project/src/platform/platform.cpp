@@ -2,7 +2,7 @@
 
 #include "utils/logger.h"
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 namespace gn::platform {
 
@@ -13,11 +13,11 @@ Platform::~Platform() {
 Result<void> Platform::initialize() {
     if (m_initialized) return Ok();
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         return Err{Error{std::string("SDL_Init failed: ") + SDL_GetError()}};
     }
     m_initialized = true;
-    GN_INFO("Platform initialized (SDL {}.{}.{})", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
+    GN_INFO("Platform initialized (SDL {}.{}.{})", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
     return Ok();
 }
 

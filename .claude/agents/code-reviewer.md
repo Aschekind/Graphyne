@@ -21,7 +21,7 @@ Review, in order:
 3. Tests: is the change covered, were tests weakened or deleted? New `.cpp` and test files listed in
    `CMakeLists.txt` / `tests/CMakeLists.txt`?
 4. Scope: unrequested features, needless abstractions, unrelated edits, new dependencies without an ADR,
-   graphics or windowing dependencies beyond ADR 0003, new SDL2-specific code before the SDL3 migration.
+   graphics or windowing dependencies beyond ADR 0003.
 5. Docs: README, `docs/ROADMAP.md` or an ADR updated when the change calls for it.
 
 Use `git diff develop...HEAD` plus `git diff` for uncommitted work, unless the brief names another range.

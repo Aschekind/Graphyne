@@ -113,7 +113,7 @@ endif()
 # Dependencies
 # ---------------------------------------------------------------------------
 find_package(Vulkan REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
@@ -164,8 +164,7 @@ target_include_directories(graphyne
 target_link_libraries(graphyne
     PUBLIC
         Vulkan::Vulkan
-        SDL2::SDL2
-        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+        SDL3::SDL3
         spdlog::spdlog
         glm::glm
         fmt::fmt

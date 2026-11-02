@@ -8,10 +8,10 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 
 ## Now
 
-1. **Migrate SDL2 → SDL3** (ADR 0003). `vcpkg.json` (`sdl3`, Linux features wayland and x11 only, as for
-   SDL2), CMake targets, `platform/window.cpp` and `platform.cpp` (events, key codes, init, bool returns),
-   the Vulkan surface and instance-extension calls (`rhi/device.cpp`, `platform/window.cpp`), README.
-   Done when `simple_window` opens and clears on Windows, tests pass, and CI is green on both platforms.
+1. **Fix render-finished semaphore reuse.** `simple_window` logs VUID-vkQueueSubmit2-semaphore-03868: the
+   renderer signals a per-frame-in-flight semaphore that presentation of another swapchain image may still
+   hold. Use one render-finished semaphore per swapchain image (recreated with the swapchain). Done when a
+   run shows no validation errors.
 
 ## Next
 
@@ -51,3 +51,4 @@ multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
   CMake ≥ 3.21, ubuntu-24.04, no Vulkan SDK step, vcpkg binary cache, CI trimmed for the minutes budget.
 - 2026-10-29: stack review. SDL3 for windowing, raw Vulkan 1.3 kept, VMA and glslang tools approved
   (ADR 0003).
+- 2026-10-29: SDL2 → SDL3 (ADR 0003). Swapchain size and resize events now in pixels (HiDPI).
