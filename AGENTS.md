@@ -9,10 +9,10 @@ Graphyne is a lightweight game engine written from scratch in C++20: a personal 
 low-level architecture, performance and experimentation (ECS, rendering, multithreading, modular design).
 It is early-stage. Keep it lightweight: prefer small, understandable code over general frameworks.
 
-**The stack is under review.** Vulkan + SDL2 was chosen two years ago without a firm direction, and the
-tooling has moved since (SDL2 is deprecated upstream in favour of SDL3; the vcpkg and CI pins are old).
-Until the stack review in `docs/ROADMAP.md` ends with an ADR, don't build new features on top of the
-SDL or Vulkan layers beyond what a brief asks, and don't add graphics or windowing dependencies.
+**Stack (ADR 0003): SDL3 for windowing and input, raw Vulkan 1.3 for graphics.** Graphyne owns its Vulkan
+code on purpose (learning value); don't add rendering abstractions or engines. Approved helpers, added
+when the work needs them: VMA and glslang's tools. The code is still on SDL2 until the SDL3 migration on
+the roadmap lands; don't add new SDL2-specific code meanwhile.
 
 Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per decision).
 
@@ -21,8 +21,8 @@ Plans live in `docs/ROADMAP.md`, decisions in `docs/adr/` (one numbered file per
 - C++20 (no compiler extensions), CMake ≥ 3.21, vcpkg manifest mode (`vcpkg.json`) pinned by
   `builtin-baseline` (vcpkg release 2026.10.16). Local vcpkg clones must contain that commit; CI uses the
   same commit. Changing the baseline is a dependency change: ask the owner.
-- Dependencies (all from vcpkg, on every platform): Vulkan (headers + loader), SDL2, spdlog, fmt (through
-  spdlog), glm, GoogleTest.
+- Dependencies (all from vcpkg, on every platform): Vulkan (headers + loader), SDL2 (SDL3 after the
+  migration), spdlog, fmt (through spdlog), glm, GoogleTest.
 - Platforms: Windows (MSVC, Visual Studio 2022) and Linux (GCC) are first-class; macOS best effort.
 - CI: `.github/workflows/ci.yml`. clang-format first; then Linux (GCC, ubuntu-24.04, tests + coverage) and
   Windows (MSVC, tests; Debug on PRs, Debug + Release on push to `develop`/`main`). Docs-only and

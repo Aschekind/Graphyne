@@ -13,7 +13,7 @@ the next item.
 | Work                                                                        | Agent                | Model      |
 | --------------------------------------------------------------------------- | -------------------- | ---------- |
 | Reading code, CMake and tests and explaining how a part works               | `code-reader`        | Haiku 5.5  |
-| Looking up docs, libraries, vcpkg ports; options for the stack review       | `docs-researcher`    | Haiku 5.5  |
+| Looking up docs, libraries, vcpkg ports; stack and dependency options       | `docs-researcher`    | Haiku 5.5  |
 | Configuring, building, testing, format and lint checks                      | `build-runner`       | Haiku 5.5  |
 | C++ in `core`, `memory`, `utils` and new engine areas (ECS, scenes)         | `engine-implementer` | Sonnet 5.5 |
 | C++ in `platform`, `rhi`, `graphics` (SDL, Vulkan) and `examples/`          | `render-implementer` | Sonnet 5.5 |

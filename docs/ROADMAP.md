@@ -4,19 +4,21 @@ The orchestrator picks work from **Now**, top to bottom. One item per branch and
 finishes an item updates this file. Decisions go to `adr/`.
 
 Goal: a lightweight engine for learning and experimenting with low-level engine design (ECS, rendering,
-multithreading). The stack (Vulkan + SDL2, 2024) is being reviewed before new features build on it.
+multithreading). Stack: SDL3 + raw Vulkan 1.3 (ADR 0003).
 
 ## Now
 
-1. **Stack review → ADR 0003** (owner decides). Windowing: SDL2 (deprecated upstream) → SDL3, or other.
-   Graphics: raw Vulkan, SDL3 GPU API, or another layer, judged against "lightweight and experimental".
-   Research with `docs-researcher`, present options with costs, record the owner's choice, then plan the
-   migration as its own item.
+1. **Migrate SDL2 → SDL3** (ADR 0003). `vcpkg.json` (`sdl3`, Linux features wayland and x11 only, as for
+   SDL2), CMake targets, `platform/window.cpp` and `platform.cpp` (events, key codes, init, bool returns),
+   the Vulkan surface and instance-extension calls (`rhi/device.cpp`, `platform/window.cpp`), README.
+   Done when `simple_window` opens and clears on Windows, tests pass, and CI is green on both platforms.
 
 ## Next
 
-2. **Textures and sprites** on the chosen stack (`origin/feat/texture-rendering` holds earlier work;
-   reassess it after item 1).
+2. **Textures and sprites** on SDL3 + Vulkan, with VMA and glslang tools (ADR 0003). Rebuild from
+   `origin/feat/texture-rendering` rather than rebasing it (8 conflicting files, SDL2-based); reuse its
+   camera, sprite data and image-decoding parts. Image decoding needs `stb` or similar: ask the owner and
+   write an ADR. Batch sprites instead of one draw per sprite.
 3. **ECS and scenes**: the main experiment. Pure C++, fully unit-tested, independent of rendering.
 
 ## Backlog
@@ -47,3 +49,5 @@ multithreading). The stack (Vulkan + SDL2, 2024) is being reviewed before new fe
   overloads) and the Windows CI job (`setup-vulkan-sdk` v1.2.1, off the disabled `actions/cache@v2`).
 - 2026-10-28: toolchain refresh. vcpkg baseline 2026.10.16 everywhere (Linux CI moved from apt to vcpkg),
   CMake ≥ 3.21, ubuntu-24.04, no Vulkan SDK step, vcpkg binary cache, CI trimmed for the minutes budget.
+- 2026-10-29: stack review. SDL3 for windowing, raw Vulkan 1.3 kept, VMA and glslang tools approved
+  (ADR 0003).
